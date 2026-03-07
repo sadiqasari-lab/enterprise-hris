@@ -146,6 +146,39 @@ class APIClient {
     return response.data
   }
 
+  // Mobile Attendance API
+  async mobileCheckIn(data: {
+    locationId?: string
+    gps?: any
+    selfie?: string
+    wifiSSID?: string
+    deviceInfo?: any
+  }) {
+    const response = await this.client.post('/mobile/attendance/check-in', data)
+    return response.data
+  }
+
+  async mobileCheckOut() {
+    const response = await this.client.post('/mobile/attendance/check-out')
+    return response.data
+  }
+
+  async getMobileAttendanceStatus() {
+    const response = await this.client.get('/mobile/attendance/status')
+    return response.data
+  }
+
+  async getMobileAttendanceHistory(params?: {
+    startDate?: string
+    endDate?: string
+    status?: string
+    page?: number
+    limit?: number
+  }) {
+    const response = await this.client.get('/mobile/attendance/history', { params })
+    return response.data
+  }
+
   // Payroll API
   async getPayslips() {
     const response = await this.client.get('/payroll/payslips/my')

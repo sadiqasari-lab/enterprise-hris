@@ -29,6 +29,7 @@ import auditRoutes from './modules/audit/audit.routes';
 import recruitmentRoutes from './modules/recruitment/recruitment.routes';
 import onboardingRoutes from './modules/onboarding/onboarding.routes';
 import mobileAuthRoutes from './modules/mobile-auth/mobile-auth.routes';
+import mobileAttendanceRoutes from './modules/mobile-attendance/mobile-attendance.routes';
 
 const app: Application = express();
 
@@ -126,6 +127,7 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/recruitment', recruitmentRoutes);
 app.use('/api', onboardingRoutes);
 app.use('/api/mobile/auth', mobileAuthRoutes);
+app.use('/api/mobile/attendance', mobileAttendanceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
