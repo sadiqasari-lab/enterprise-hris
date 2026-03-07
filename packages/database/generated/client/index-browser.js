@@ -217,6 +217,15 @@ exports.Prisma.UserRoleScalarFieldEnum = {
   assigned_by: 'assigned_by'
 };
 
+exports.Prisma.PasswordResetTokenScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  token_hash: 'token_hash',
+  expires_at: 'expires_at',
+  used_at: 'used_at',
+  created_at: 'created_at'
+};
+
 exports.Prisma.JobPostingScalarFieldEnum = {
   id: 'id',
   company_id: 'company_id',
@@ -729,6 +738,7 @@ exports.Prisma.ModelName = {
   Permission: 'Permission',
   RolePermission: 'RolePermission',
   UserRole: 'UserRole',
+  PasswordResetToken: 'PasswordResetToken',
   JobPosting: 'JobPosting',
   Applicant: 'Applicant',
   Interview: 'Interview',

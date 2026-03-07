@@ -57,11 +57,12 @@ model User {
   deleted_at    DateTime?
 
   // Relations
-  company           Company    @relation(fields: [company_id], references: [id])
-  employee          Employee?  @relation(fields: [employee_id], references: [id])
-  user_roles        UserRole[]
-  audit_logs        AuditLog[]
-  created_documents Document[] @relation("DocumentCreator")
+  company               Company              @relation(fields: [company_id], references: [id])
+  employee              Employee?            @relation(fields: [employee_id], references: [id])
+  user_roles            UserRole[]
+  password_reset_tokens PasswordResetToken[]
+  audit_logs            AuditLog[]
+  created_documents     Document[]           @relation("DocumentCreator")
 
   @@index([company_id])
   @@index([email])
@@ -210,6 +211,20 @@ model UserRole {
   @@index([user_id])
   @@index([role_id])
   @@index([company_id])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(uuid())
+  user_id    String
+  token_hash String    @unique
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
 }
 
 // ============================================================================

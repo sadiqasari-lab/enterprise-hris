@@ -4,9 +4,11 @@
  */
 
 import { PrismaClient } from '@hris/database';
+import crypto from 'crypto';
 import { JWTService, PasswordService, JWTPayload, TokenPair } from '@hris/auth';
 import { ApiError, unauthorized } from '../../middleware/errorHandler';
 import { config } from '../../config';
+import { sendPasswordResetEmail } from '../../utils/email';
 
 const prisma = new PrismaClient();
 const jwtService = new JWTService(
@@ -235,8 +237,29 @@ export class AuthService {
       return { message: 'If the email exists, a reset link has been sent' };
     }
 
-    // TODO: Generate reset token and send email
-    // For now, just return success message
+    if (!user.is_active) {
+      return { message: 'If the email exists, a reset link has been sent' };
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await prisma.passwordResetToken.deleteMany({
+      where: { user_id: user.id },
+    });
+
+    await prisma.passwordResetToken.create({
+      data: {
+        user_id: user.id,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+      },
+    });
+
+    const appUrl = process.env.WEB_APP_URL || 'http://localhost:3000';
+    const resetLink = `${appUrl}/auth/reset-password?token=${rawToken}`;
+    await sendPasswordResetEmail(user.email, resetLink);
 
     return { message: 'If the email exists, a reset link has been sent' };
   }
@@ -248,14 +271,39 @@ export class AuthService {
     token: string,
     newPassword: string
   ): Promise<{ message: string }> {
-    // TODO: Verify reset token and update password
-    // This would involve storing reset tokens in the database
-
     // Validate new password strength
     const validation = passwordService.validateStrength(newPassword);
     if (!validation.isValid) {
       throw new ApiError(400, validation.errors.join(', '));
     }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const tokenRecord = await prisma.passwordResetToken.findFirst({
+      where: {
+        token_hash: tokenHash,
+        used_at: null,
+        expires_at: { gt: new Date() },
+      },
+      include: { user: true },
+    });
+
+    if (!tokenRecord || !tokenRecord.user?.is_active) {
+      throw new ApiError(400, 'Invalid or expired reset token');
+    }
+
+    const newPasswordHash = await passwordService.hash(newPassword);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: tokenRecord.user_id },
+        data: { password_hash: newPasswordHash },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: tokenRecord.id },
+        data: { used_at: new Date() },
+      }),
+    ]);
 
     return { message: 'Password reset successfully' };
   }
