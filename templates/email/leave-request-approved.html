@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Leave Request Approved</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0;">{{COMPANY_NAME}}</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <div style="width: 80px; height: 80px; background-color: #d4edda; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                                    <span style="font-size: 48px; color: #28a745;">✓</span>
+                                </div>
+                                <h2 style="color: #28a745; margin: 0; font-size: 24px;">Leave Request Approved!</h2>
+                            </div>
+                            
+                            <p style="color: #666666; line-height: 1.6;">
+                                Dear {{EMPLOYEE_NAME}},
+                            </p>
+                            
+                            <p style="color: #666666; line-height: 1.6;">
+                                Great news! Your leave request has been approved by {{APPROVED_BY}}.
+                            </p>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #d4edda; border-radius: 6px; margin: 20px 0;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table width="100%" cellpadding="8" cellspacing="0">
+                                            <tr>
+                                                <td style="color: #155724; font-weight: bold; width: 40%;">Leave Type:</td>
+                                                <td style="color: #155724;">{{LEAVE_TYPE}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #155724; font-weight: bold;">Start Date:</td>
+                                                <td style="color: #155724;">{{START_DATE}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #155724; font-weight: bold;">End Date:</td>
+                                                <td style="color: #155724;">{{END_DATE}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #155724; font-weight: bold;">Working Days:</td>
+                                                <td style="color: #155724; font-weight: bold; font-size: 18px;">{{WORKING_DAYS}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #666666; line-height: 1.6;">
+                                Enjoy your time off! We'll see you back on {{RETURN_DATE}}.
+                            </p>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{HRIS_URL}}/employee/leave" style="background: #28a745; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; display: inline-block; font-weight: bold;">View Leave Details</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center;">
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                &copy; {{YEAR}} {{COMPANY_NAME}}. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

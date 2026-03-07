@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Payslip Available</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0;">{{COMPANY_NAME}}</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #333333; margin: 0 0 20px 0;">Your Payslip is Ready</h2>
+                            
+                            <p style="color: #666666; line-height: 1.6;">
+                                Dear {{EMPLOYEE_NAME}},
+                            </p>
+                            
+                            <p style="color: #666666; line-height: 1.6;">
+                                Your payslip for {{MONTH}} {{YEAR}} is now available.
+                            </p>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; margin: 20px 0;">
+                                <tr>
+                                    <td style="padding: 30px; text-align: center;">
+                                        <div style="color: #ffffff; opacity: 0.8; font-size: 14px; margin-bottom: 8px;">NET PAY</div>
+                                        <div style="color: #ffffff; font-size: 36px; font-weight: bold; margin-bottom: 8px;">SAR {{NET_PAY}}</div>
+                                        <div style="color: #ffffff; opacity: 0.8; font-size: 12px;">Payment Date: {{PAYMENT_DATE}}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border-radius: 6px; margin: 20px 0;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <h3 style="color: #333333; margin: 0 0 15px 0; font-size: 16px;">Earnings</h3>
+                                        <table width="100%" cellpadding="6" cellspacing="0">
+                                            <tr>
+                                                <td style="color: #666666;">Basic Salary:</td>
+                                                <td style="color: #333333; text-align: right; font-weight: bold;">SAR {{BASIC_SALARY}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #666666;">Housing Allowance:</td>
+                                                <td style="color: #333333; text-align: right; font-weight: bold;">SAR {{HOUSING_ALLOWANCE}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #666666;">Transport Allowance:</td>
+                                                <td style="color: #333333; text-align: right; font-weight: bold;">SAR {{TRANSPORT_ALLOWANCE}}</td>
+                                            </tr>
+                                            <tr style="border-top: 2px solid #dee2e6;">
+                                                <td style="color: #333333; font-weight: bold; padding-top: 10px;">Total Earnings:</td>
+                                                <td style="color: #333333; text-align: right; font-weight: bold; padding-top: 10px;">SAR {{TOTAL_EARNINGS}}</td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <h3 style="color: #333333; margin: 20px 0 15px 0; font-size: 16px;">Deductions</h3>
+                                        <table width="100%" cellpadding="6" cellspacing="0">
+                                            <tr>
+                                                <td style="color: #666666;">GOSI Contribution:</td>
+                                                <td style="color: #dc3545; text-align: right; font-weight: bold;">SAR {{GOSI_DEDUCTION}}</td>
+                                            </tr>
+                                            <tr style="border-top: 2px solid #dee2e6;">
+                                                <td style="color: #333333; font-weight: bold; padding-top: 10px;">Total Deductions:</td>
+                                                <td style="color: #dc3545; text-align: right; font-weight: bold; padding-top: 10px;">SAR {{TOTAL_DEDUCTIONS}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{HRIS_URL}}/employee/payslips" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; display: inline-block; font-weight: bold;">Download Payslip</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center;">
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                This is a confidential document. Please keep it secure.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "strict": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@hris/database": ["../../packages/database/index.ts"],
+      "@hris/auth": ["../../packages/auth/index.ts"],
+      "@hris/types": ["../../packages/types/index.ts"],
+      "@hris/validation": ["../../packages/validation/index.ts"],
+      "@hris/audit": ["../../packages/audit/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "src/scripts/**"
+  ]
+}
