@@ -34,6 +34,14 @@ const app: Application = express();
 // SECURITY MIDDLEWARE
 // ============================================================================
 
+// CORS
+app.use(cors({
+  origin: config.cors.origin,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 // Helmet - Security headers
 app.use(helmet({
   contentSecurityPolicy: {
@@ -58,6 +66,7 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
 });
 
 app.use('/api/', limiter);
@@ -65,8 +74,9 @@ app.use('/api/', limiter);
 // Stricter rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // 5 attempts per 15 minutes
+  max: config.env === 'development' ? 1000 : 5, // Relaxed in local dev
   message: 'Too many login attempts, please try again later.',
+  skip: (req) => req.method === 'OPTIONS',
 });
 
 app.use('/api/auth/login', authLimiter);
@@ -74,14 +84,6 @@ app.use('/api/auth/login', authLimiter);
 // ============================================================================
 // GENERAL MIDDLEWARE
 // ============================================================================
-
-// CORS
-app.use(cors({
-  origin: config.cors.origin,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));

@@ -1,0 +1,441 @@
+{
+  "timestamp": "2026-03-07T03:25:49.198Z",
+  "ui": [
+    {
+      "role": "superadmin",
+      "login": {
+        "pass": true,
+        "finalUrl": "http://localhost:3001/super-admin",
+        "error": ""
+      },
+      "pages": [
+        {
+          "route": "/super-admin",
+          "pass": true,
+          "url": "http://localhost:3001/super-admin",
+          "runtimeError": false
+        }
+      ],
+      "interactions": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "badApiResponses": [],
+      "failedRequests": [
+        "GET http://localhost:3001/super-admin?_rsc=y24w1 :: net::ERR_ABORTED"
+      ],
+      "dialogs": []
+    },
+    {
+      "role": "hradmin",
+      "login": {
+        "pass": true,
+        "finalUrl": "http://localhost:3001/hr-admin",
+        "error": ""
+      },
+      "pages": [
+        {
+          "route": "/hr-admin",
+          "pass": true,
+          "url": "http://localhost:3001/hr-admin",
+          "runtimeError": false
+        },
+        {
+          "route": "/hr-admin/employees",
+          "pass": true,
+          "url": "http://localhost:3001/hr-admin/employees",
+          "runtimeError": false
+        },
+        {
+          "route": "/hr-admin/leave",
+          "pass": true,
+          "url": "http://localhost:3001/hr-admin/leave",
+          "runtimeError": false
+        },
+        {
+          "route": "/hr-admin/payroll",
+          "pass": true,
+          "url": "http://localhost:3001/hr-admin/payroll",
+          "runtimeError": false
+        },
+        {
+          "route": "/hr-admin/recruitment",
+          "pass": true,
+          "url": "http://localhost:3001/hr-admin/recruitment",
+          "runtimeError": false
+        }
+      ],
+      "interactions": [],
+      "consoleErrors": [],
+      "badApiResponses": [],
+      "failedRequests": [
+        "GET http://localhost:3001/hr-admin?_rsc=y24w1 :: net::ERR_ABORTED"
+      ],
+      "dialogs": []
+    },
+    {
+      "role": "gm",
+      "login": {
+        "pass": true,
+        "finalUrl": "http://localhost:3001/gm",
+        "error": ""
+      },
+      "pages": [
+        {
+          "route": "/gm",
+          "pass": true,
+          "url": "http://localhost:3001/gm",
+          "runtimeError": false
+        },
+        {
+          "route": "/gm/payroll",
+          "pass": true,
+          "url": "http://localhost:3001/gm/payroll",
+          "runtimeError": false
+        }
+      ],
+      "interactions": [],
+      "consoleErrors": [],
+      "badApiResponses": [],
+      "failedRequests": [],
+      "dialogs": []
+    },
+    {
+      "role": "manager",
+      "login": {
+        "pass": true,
+        "finalUrl": "http://localhost:3001/manager",
+        "error": ""
+      },
+      "pages": [
+        {
+          "route": "/manager",
+          "pass": true,
+          "url": "http://localhost:3001/manager",
+          "runtimeError": false
+        }
+      ],
+      "interactions": [],
+      "consoleErrors": [],
+      "badApiResponses": [],
+      "failedRequests": [],
+      "dialogs": []
+    },
+    {
+      "role": "employee",
+      "login": {
+        "pass": true,
+        "finalUrl": "http://localhost:3001/employee",
+        "error": ""
+      },
+      "pages": [
+        {
+          "route": "/employee",
+          "pass": true,
+          "url": "http://localhost:3001/employee",
+          "runtimeError": false
+        },
+        {
+          "route": "/employee/attendance",
+          "pass": true,
+          "url": "http://localhost:3001/employee/attendance",
+          "runtimeError": false
+        },
+        {
+          "route": "/employee/leave",
+          "pass": true,
+          "url": "http://localhost:3001/employee/leave",
+          "runtimeError": false
+        },
+        {
+          "route": "/employee/payslips",
+          "pass": true,
+          "url": "http://localhost:3001/employee/payslips",
+          "runtimeError": false
+        },
+        {
+          "route": "/employee/documents",
+          "pass": true,
+          "url": "http://localhost:3001/employee/documents",
+          "runtimeError": false
+        }
+      ],
+      "interactions": [
+        {
+          "name": "attendance_checkin_checkout",
+          "pass": true,
+          "detail": "check-in and check-out completed"
+        }
+      ],
+      "consoleErrors": [
+        "Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <div> p \n    at div\n    at Badge (webpack-internal:///(app-pages-browser)/./components/ui/badge.tsx:32:11)\n    at p\n    at div\n    at div\n    at div\n    at div\n    at div\n    at div\n    at _c8 (webpack-internal:///(app-pages-browser)/./components/ui/card.tsx:74:11)\n    at div\n    at _c (webpack-internal:///(app-pages-browser)/./components/ui/card.tsx:18:11)\n    at div\n    at main\n    at div\n    at div\n    at DashboardLayout (webpack-internal:///(app-pages-browser)/./components/layout/DashboardLayout.tsx:25:11)\n    at EmployeeAttendancePage (webpack-internal:///(app-pages-browser)/./app/(employee)/employee/attendance/page.tsx:73:82)\n    at StaticGenerationSearchParamsBailoutProvider (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/static-generation-searchparams-bailout-provider.js:16:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at body\n    at html\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/internal/ReactDevOverlay.js:84:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/hot-reloader-client.js:307:11)\n    at Router (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/app-router.js:181:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:114:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/app-router.js:536:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/app-index.js:129:11)\n    at RSCComponent\n    at Root (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/app-index.js:145:11)"
+      ],
+      "badApiResponses": [],
+      "failedRequests": [
+        "GET http://localhost:3001/employee?_rsc=1qydb :: net::ERR_ABORTED"
+      ],
+      "dialogs": [
+        "Check-in successful!",
+        "Check-out successful!"
+      ]
+    }
+  ],
+  "api": [
+    {
+      "type": "auth_login",
+      "role": "superadmin",
+      "endpoint": "/api/auth/login",
+      "status": 200,
+      "pass": true,
+      "message": "token issued"
+    },
+    {
+      "type": "auth_login",
+      "role": "hradmin",
+      "endpoint": "/api/auth/login",
+      "status": 200,
+      "pass": true,
+      "message": "token issued"
+    },
+    {
+      "type": "auth_login",
+      "role": "gm",
+      "endpoint": "/api/auth/login",
+      "status": 200,
+      "pass": true,
+      "message": "token issued"
+    },
+    {
+      "type": "auth_login",
+      "role": "manager",
+      "endpoint": "/api/auth/login",
+      "status": 200,
+      "pass": true,
+      "message": "token issued"
+    },
+    {
+      "type": "auth_login",
+      "role": "employee",
+      "endpoint": "/api/auth/login",
+      "status": 200,
+      "pass": true,
+      "message": "token issued"
+    },
+    {
+      "role": "superadmin",
+      "module": "companies",
+      "path": "/api/companies",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "superadmin",
+      "module": "companies",
+      "path": "/api/companies/3a28f65a-03d6-4648-ba26-2725e84ff20d/stats",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "employees",
+      "path": "/api/employees",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "employees",
+      "path": "/api/employees/departments",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "employee",
+      "module": "attendance",
+      "path": "/api/attendance/records",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "employee",
+      "module": "leave",
+      "path": "/api/leave/balances/my",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "employee",
+      "module": "leave",
+      "path": "/api/leave/requests/my",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "leave",
+      "path": "/api/leave/types",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "leave",
+      "path": "/api/leave/requests",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "payroll",
+      "path": "/api/payroll/cycles",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "employee",
+      "module": "payroll",
+      "path": "/api/payroll/payslips/my",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "documents",
+      "path": "/api/documents",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "employee",
+      "module": "documents",
+      "path": "/api/documents/pending-signatures/my",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "performance",
+      "path": "/api/performance/cycles",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "performance",
+      "path": "/api/performance/goals",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "performance",
+      "path": "/api/performance/appraisals",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "recruitment",
+      "path": "/api/recruitment/postings",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "recruitment",
+      "path": "/api/recruitment/applicants",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "training",
+      "path": "/api/training/trainings",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "discipline",
+      "path": "/api/discipline/incidents",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "termination",
+      "path": "/api/termination",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "role": "hradmin",
+      "module": "audit",
+      "path": "/api/audit/logs",
+      "type": "api_smoke",
+      "status": 200,
+      "pass": true,
+      "message": "ok"
+    }
+  ],
+  "summary": {
+    "api": {
+      "pass": 27,
+      "total": 27
+    },
+    "uiLogins": {
+      "pass": 5,
+      "total": 5
+    },
+    "uiPages": {
+      "pass": 14,
+      "total": 14
+    },
+    "interactions": {
+      "pass": 1,
+      "total": 1
+    }
+  }
+}

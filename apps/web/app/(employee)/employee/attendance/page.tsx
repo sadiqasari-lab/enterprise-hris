@@ -89,9 +89,6 @@ export default function EmployeeAttendancePage() {
   const handleCheckIn = async () => {
     setLoading(true)
     try {
-      // In real app, capture selfie from camera
-      const selfieData = 'data:image/png;base64,...' // Mock
-
       const response = await apiClient.checkIn({
         locationId: 'main-office-id',
         gps: currentLocation ? {
@@ -99,7 +96,6 @@ export default function EmployeeAttendancePage() {
           longitude: currentLocation.coords.longitude,
           accuracy: currentLocation.coords.accuracy,
         } : undefined,
-        selfie: selfieData,
         wifiSSID: 'Office_Network', // Get from device
         deviceInfo: {
           model: navigator.userAgent,

@@ -6,6 +6,22 @@
 import { Request, Response, NextFunction } from 'express';
 import { attendanceService } from './attendance.service';
 import { ApiError } from '../../middleware/errorHandler';
+import { PrismaClient } from '@hris/database';
+
+const prisma = new PrismaClient();
+
+async function resolveEmployeeIdFromUser(userId: string): Promise<string> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { employee_id: true },
+  });
+
+  if (!user?.employee_id) {
+    throw new ApiError(400, 'No employee profile linked to this account');
+  }
+
+  return user.employee_id;
+}
 
 export class AttendanceController {
   /**
@@ -15,7 +31,7 @@ export class AttendanceController {
   async checkIn(req: Request, res: Response, next: NextFunction) {
     try {
       const { locationId, gps, selfie, wifiSSID, deviceInfo } = req.body;
-      const employeeId = req.userId!;
+      const employeeId = await resolveEmployeeIdFromUser(req.userId!);
 
       if (!locationId) {
         throw new ApiError(400, 'Location ID is required');
@@ -59,7 +75,7 @@ export class AttendanceController {
    */
   async checkOut(req: Request, res: Response, next: NextFunction) {
     try {
-      const employeeId = req.userId!;
+      const employeeId = await resolveEmployeeIdFromUser(req.userId!);
 
       const result = await attendanceService.checkOut(
         employeeId,
@@ -82,7 +98,7 @@ export class AttendanceController {
    */
   async getRecords(req: Request, res: Response, next: NextFunction) {
     try {
-      const employeeId = req.userId!;
+      const employeeId = await resolveEmployeeIdFromUser(req.userId!);
       const companyId = req.companyId!;
       const { startDate, endDate, status } = req.query;
 
@@ -109,7 +125,7 @@ export class AttendanceController {
    */
   async getSummary(req: Request, res: Response, next: NextFunction) {
     try {
-      const employeeId = req.userId!;
+      const employeeId = await resolveEmployeeIdFromUser(req.userId!);
       const { month, year } = req.query;
 
       if (!month || !year) {
