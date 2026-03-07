@@ -1,6 +1,0 @@
-employeeNumber,firstName,firstNameAr,lastName,lastNameAr,email,phone,hireDate,departmentCode,position,positionAr,basicSalary,housingAllowance,transportAllowance
-EMP101,Ahmed,أحمد,Al-Farsi,الفارسي,ahmed.alfarsi@company.com,+966501234567,2020-01-15,ENG,Engineering Manager,مدير الهندسة,20000,8000,2000
-EMP102,Sarah,سارة,Ahmed,أحمد,sarah.ahmed@company.com,+966502345678,2019-03-01,HR,HR Administrator,مسؤول الموارد البشرية,18000,7200,1800
-EMP103,Mohammed,محمد,Hassan,حسن,mohammed.hassan@company.com,+966503456789,2021-06-01,ENG,Senior Developer,مطور أول,15000,6000,1500
-EMP104,Fatima,فاطمة,Al-Rashid,الرشيد,fatima.alrashid@company.com,+966504567890,2022-01-15,MKT,Marketing Specialist,أخصائي تسويق,12000,5000,1200
-EMP105,Omar,عمر,Abdullah,عبدالله,omar.abdullah@company.com,+966505678901,2021-09-01,ENG,Full Stack Developer,مطور متكامل,14000,5600,1400
