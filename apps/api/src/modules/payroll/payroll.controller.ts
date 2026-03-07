@@ -218,6 +218,26 @@ export class PayrollController {
   }
 
   /**
+   * GET /api/payroll/reports/summary
+   * Payroll summary metrics
+   */
+  async getSummary(req: Request, res: Response, next: NextFunction) {
+    try {
+      const companyId = req.companyId!;
+      const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
+
+      const summary = await payrollService.getPayrollSummary(companyId, year);
+
+      res.status(200).json({
+        success: true,
+        data: { summary },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * DELETE /api/payroll/cycles/:id
    * Delete draft payroll cycle (HR Officer only)
    */

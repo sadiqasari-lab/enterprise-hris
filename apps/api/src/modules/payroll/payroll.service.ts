@@ -555,6 +555,77 @@ export class PayrollService {
   }
 
   /**
+   * Get payroll summary metrics for reporting dashboard
+   */
+  async getPayrollSummary(companyId: string, year?: number): Promise<any> {
+    const where: any = { company_id: companyId };
+    if (year) {
+      where.period_start = {
+        gte: new Date(year, 0, 1),
+        lte: new Date(year, 11, 31),
+      };
+    }
+
+    const cycles = await prisma.payrollCycle.findMany({
+      where,
+      include: {
+        records: {
+          select: {
+            gross_salary: true,
+            total_deductions: true,
+            net_salary: true,
+          },
+        },
+      },
+      orderBy: {
+        period_start: 'asc',
+      },
+    });
+
+    const byStatus: Record<string, number> = {};
+    let totalGross = 0;
+    let totalDeductions = 0;
+    let totalNet = 0;
+    let totalRecords = 0;
+    const monthlyMap = new Map<string, { gross: number; net: number; cycles: number }>();
+
+    for (const cycle of cycles) {
+      byStatus[cycle.status] = (byStatus[cycle.status] || 0) + 1;
+
+      for (const record of cycle.records) {
+        totalGross += record.gross_salary;
+        totalDeductions += record.total_deductions;
+        totalNet += record.net_salary;
+        totalRecords += 1;
+      }
+
+      const monthKey = cycle.period_start.toISOString().slice(0, 7);
+      const current = monthlyMap.get(monthKey) || { gross: 0, net: 0, cycles: 0 };
+      current.gross += cycle.records.reduce((sum, r) => sum + r.gross_salary, 0);
+      current.net += cycle.records.reduce((sum, r) => sum + r.net_salary, 0);
+      current.cycles += 1;
+      monthlyMap.set(monthKey, current);
+    }
+
+    const monthlyTrend = Array.from(monthlyMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([month, value]) => ({ month, ...value }));
+
+    return {
+      period: year || 'all-time',
+      totalCycles: cycles.length,
+      totalPayrollRecords: totalRecords,
+      totalGrossSalary: totalGross,
+      totalDeductions,
+      totalNetSalary: totalNet,
+      averageNetPerRecord: totalRecords > 0 ? totalNet / totalRecords : 0,
+      pendingApprovals: (byStatus.PENDING_REVIEW || 0) + (byStatus.PENDING_GM_APPROVAL || 0),
+      byStatus,
+      monthlyTrend,
+    };
+  }
+
+  /**
    * Get payslip for employee
    */
   async getPayslip(cycleId: string, employeeId: string): Promise<any> {

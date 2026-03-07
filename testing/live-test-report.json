@@ -1,441 +1,570 @@
 {
-  "timestamp": "2026-03-07T03:25:49.198Z",
-  "ui": [
+  "startedAt": "2026-03-07T04:29:58.612Z",
+  "finishedAt": "2026-03-07T04:30:38.312Z",
+  "environment": {
+    "web": "http://localhost:3001",
+    "api": "http://localhost:3002"
+  },
+  "summary": {
+    "api": {
+      "passed": 11,
+      "total": 11
+    },
+    "uiLogins": {
+      "passed": 6,
+      "total": 6
+    },
+    "uiRoutes": {
+      "passed": 36,
+      "total": 36
+    }
+  },
+  "apiTests": [
     {
-      "role": "superadmin",
-      "login": {
-        "pass": true,
-        "finalUrl": "http://localhost:3001/super-admin",
-        "error": ""
-      },
-      "pages": [
-        {
-          "route": "/super-admin",
-          "pass": true,
-          "url": "http://localhost:3001/super-admin",
-          "runtimeError": false
-        }
-      ],
-      "interactions": [],
-      "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 404 (Not Found)"
-      ],
-      "badApiResponses": [],
-      "failedRequests": [
-        "GET http://localhost:3001/super-admin?_rsc=y24w1 :: net::ERR_ABORTED"
-      ],
-      "dialogs": []
+      "name": "Health check",
+      "pass": true,
+      "status": 200
     },
     {
-      "role": "hradmin",
-      "login": {
-        "pass": true,
-        "finalUrl": "http://localhost:3001/hr-admin",
-        "error": ""
-      },
-      "pages": [
+      "name": "Auth login (HR Admin)",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Payroll summary endpoint",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Mobile auth login",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Mobile auth refresh",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Mobile auth logout",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Employee listing",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Onboarding checklist list endpoint",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Onboarding checklist create endpoint",
+      "pass": true,
+      "status": 409
+    },
+    {
+      "name": "Employee onboarding fetch endpoint",
+      "pass": true,
+      "status": 200
+    },
+    {
+      "name": "Onboarding task update endpoint",
+      "pass": true,
+      "status": 200
+    }
+  ],
+  "uiRoleResults": [
+    {
+      "role": "superAdmin",
+      "loginPass": true,
+      "finalUrl": "http://localhost:3001/super-admin/security",
+      "authNetwork": [
         {
-          "route": "/hr-admin",
-          "pass": true,
-          "url": "http://localhost:3001/hr-admin",
-          "runtimeError": false
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/auth/login"
         },
         {
-          "route": "/hr-admin/employees",
-          "pass": true,
-          "url": "http://localhost:3001/hr-admin/employees",
-          "runtimeError": false
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/auth/login"
         },
         {
-          "route": "/hr-admin/leave",
-          "pass": true,
-          "url": "http://localhost:3001/hr-admin/leave",
-          "runtimeError": false
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
         },
         {
-          "route": "/hr-admin/payroll",
-          "pass": true,
-          "url": "http://localhost:3001/hr-admin/payroll",
-          "runtimeError": false
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
         },
         {
-          "route": "/hr-admin/recruitment",
-          "pass": true,
-          "url": "http://localhost:3001/hr-admin/recruitment",
-          "runtimeError": false
+          "phase": "request",
+          "method": "POST",
+          "url": "http://localhost:3002/api/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3002/api/auth/login"
         }
       ],
-      "interactions": [],
-      "consoleErrors": [],
-      "badApiResponses": [],
-      "failedRequests": [
-        "GET http://localhost:3001/hr-admin?_rsc=y24w1 :: net::ERR_ABORTED"
+      "routeChecks": [
+        {
+          "role": "superAdmin",
+          "route": "/super-admin",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "superAdmin",
+          "route": "/super-admin/companies",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "superAdmin",
+          "route": "/super-admin/users",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "superAdmin",
+          "route": "/super-admin/audit",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "superAdmin",
+          "route": "/super-admin/health",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "superAdmin",
+          "route": "/super-admin/security",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        }
+      ]
+    },
+    {
+      "role": "hrAdmin",
+      "loginPass": true,
+      "finalUrl": "http://localhost:3001/hr-admin/settings",
+      "authNetwork": [
+        {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "request",
+          "method": "POST",
+          "url": "http://localhost:3002/api/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3002/api/auth/login"
+        }
       ],
-      "dialogs": []
+      "routeChecks": [
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/employees",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/recruitment",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/attendance",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/leave",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/payroll",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/documents",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/performance",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/reports",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrAdmin",
+          "route": "/hr-admin/settings",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        }
+      ]
+    },
+    {
+      "role": "hrOfficer",
+      "loginPass": true,
+      "finalUrl": "http://localhost:3001/hr-admin/recruitment",
+      "authNetwork": [
+        {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "request",
+          "method": "POST",
+          "url": "http://localhost:3002/api/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3002/api/auth/login"
+        }
+      ],
+      "routeChecks": [
+        {
+          "role": "hrOfficer",
+          "route": "/hr-officer",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrOfficer",
+          "route": "/hr-admin/payroll",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrOfficer",
+          "route": "/hr-admin/attendance",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "hrOfficer",
+          "route": "/hr-admin/recruitment",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        }
+      ]
     },
     {
       "role": "gm",
-      "login": {
-        "pass": true,
-        "finalUrl": "http://localhost:3001/gm",
-        "error": ""
-      },
-      "pages": [
+      "loginPass": true,
+      "finalUrl": "http://localhost:3001/gm/analytics",
+      "authNetwork": [
         {
-          "route": "/gm",
-          "pass": true,
-          "url": "http://localhost:3001/gm",
-          "runtimeError": false
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/auth/login"
         },
         {
-          "route": "/gm/payroll",
-          "pass": true,
-          "url": "http://localhost:3001/gm/payroll",
-          "runtimeError": false
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "request",
+          "method": "POST",
+          "url": "http://localhost:3002/api/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3002/api/auth/login"
         }
       ],
-      "interactions": [],
-      "consoleErrors": [],
-      "badApiResponses": [],
-      "failedRequests": [],
-      "dialogs": []
+      "routeChecks": [
+        {
+          "role": "gm",
+          "route": "/gm",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "gm",
+          "route": "/gm/payroll",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "gm",
+          "route": "/gm/reports",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "gm",
+          "route": "/gm/documents",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "gm",
+          "route": "/gm/analytics",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        }
+      ]
     },
     {
       "role": "manager",
-      "login": {
-        "pass": true,
-        "finalUrl": "http://localhost:3001/manager",
-        "error": ""
-      },
-      "pages": [
+      "loginPass": true,
+      "finalUrl": "http://localhost:3001/manager/reports",
+      "authNetwork": [
         {
-          "route": "/manager",
-          "pass": true,
-          "url": "http://localhost:3001/manager",
-          "runtimeError": false
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "request",
+          "method": "POST",
+          "url": "http://localhost:3002/api/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3002/api/auth/login"
         }
       ],
-      "interactions": [],
-      "consoleErrors": [],
-      "badApiResponses": [],
-      "failedRequests": [],
-      "dialogs": []
+      "routeChecks": [
+        {
+          "role": "manager",
+          "route": "/manager",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "manager",
+          "route": "/manager/team",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "manager",
+          "route": "/manager/leave",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "manager",
+          "route": "/manager/performance",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        },
+        {
+          "role": "manager",
+          "route": "/manager/reports",
+          "status": 200,
+          "pass": true,
+          "title": "Enterprise HRIS Platform"
+        }
+      ]
     },
     {
       "role": "employee",
-      "login": {
-        "pass": true,
-        "finalUrl": "http://localhost:3001/employee",
-        "error": ""
-      },
-      "pages": [
+      "loginPass": true,
+      "finalUrl": "http://localhost:3001/employee/profile",
+      "authNetwork": [
         {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/auth/login"
+        },
+        {
+          "phase": "request",
+          "method": "GET",
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3001/_next/static/chunks/app/auth/login/page.js"
+        },
+        {
+          "phase": "request",
+          "method": "POST",
+          "url": "http://localhost:3002/api/auth/login"
+        },
+        {
+          "phase": "response",
+          "status": 200,
+          "url": "http://localhost:3002/api/auth/login"
+        }
+      ],
+      "routeChecks": [
+        {
+          "role": "employee",
           "route": "/employee",
+          "status": 200,
           "pass": true,
-          "url": "http://localhost:3001/employee",
-          "runtimeError": false
+          "title": "Enterprise HRIS Platform"
         },
         {
+          "role": "employee",
           "route": "/employee/attendance",
+          "status": 200,
           "pass": true,
-          "url": "http://localhost:3001/employee/attendance",
-          "runtimeError": false
+          "title": "Enterprise HRIS Platform"
         },
         {
+          "role": "employee",
           "route": "/employee/leave",
+          "status": 200,
           "pass": true,
-          "url": "http://localhost:3001/employee/leave",
-          "runtimeError": false
+          "title": "Enterprise HRIS Platform"
         },
         {
+          "role": "employee",
           "route": "/employee/payslips",
+          "status": 200,
           "pass": true,
-          "url": "http://localhost:3001/employee/payslips",
-          "runtimeError": false
+          "title": "Enterprise HRIS Platform"
         },
         {
+          "role": "employee",
           "route": "/employee/documents",
+          "status": 200,
           "pass": true,
-          "url": "http://localhost:3001/employee/documents",
-          "runtimeError": false
-        }
-      ],
-      "interactions": [
+          "title": "Enterprise HRIS Platform"
+        },
         {
-          "name": "attendance_checkin_checkout",
+          "role": "employee",
+          "route": "/employee/profile",
+          "status": 200,
           "pass": true,
-          "detail": "check-in and check-out completed"
+          "title": "Enterprise HRIS Platform"
         }
-      ],
-      "consoleErrors": [
-        "Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <div> p \n    at div\n    at Badge (webpack-internal:///(app-pages-browser)/./components/ui/badge.tsx:32:11)\n    at p\n    at div\n    at div\n    at div\n    at div\n    at div\n    at div\n    at _c8 (webpack-internal:///(app-pages-browser)/./components/ui/card.tsx:74:11)\n    at div\n    at _c (webpack-internal:///(app-pages-browser)/./components/ui/card.tsx:18:11)\n    at div\n    at main\n    at div\n    at div\n    at DashboardLayout (webpack-internal:///(app-pages-browser)/./components/layout/DashboardLayout.tsx:25:11)\n    at EmployeeAttendancePage (webpack-internal:///(app-pages-browser)/./app/(employee)/employee/attendance/page.tsx:73:82)\n    at StaticGenerationSearchParamsBailoutProvider (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/static-generation-searchparams-bailout-provider.js:16:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:335:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/layout-router.js:354:11)\n    at body\n    at html\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:73:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/redirect-boundary.js:81:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/internal/ReactDevOverlay.js:84:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/hot-reloader-client.js:307:11)\n    at Router (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/app-router.js:181:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:114:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/error-boundary.js:161:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/app-router.js:536:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/app-index.js:129:11)\n    at RSCComponent\n    at Root (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/app-index.js:145:11)"
-      ],
-      "badApiResponses": [],
-      "failedRequests": [
-        "GET http://localhost:3001/employee?_rsc=1qydb :: net::ERR_ABORTED"
-      ],
-      "dialogs": [
-        "Check-in successful!",
-        "Check-out successful!"
       ]
     }
   ],
-  "api": [
-    {
-      "type": "auth_login",
-      "role": "superadmin",
-      "endpoint": "/api/auth/login",
-      "status": 200,
-      "pass": true,
-      "message": "token issued"
-    },
-    {
-      "type": "auth_login",
-      "role": "hradmin",
-      "endpoint": "/api/auth/login",
-      "status": 200,
-      "pass": true,
-      "message": "token issued"
-    },
-    {
-      "type": "auth_login",
-      "role": "gm",
-      "endpoint": "/api/auth/login",
-      "status": 200,
-      "pass": true,
-      "message": "token issued"
-    },
-    {
-      "type": "auth_login",
-      "role": "manager",
-      "endpoint": "/api/auth/login",
-      "status": 200,
-      "pass": true,
-      "message": "token issued"
-    },
-    {
-      "type": "auth_login",
-      "role": "employee",
-      "endpoint": "/api/auth/login",
-      "status": 200,
-      "pass": true,
-      "message": "token issued"
-    },
-    {
-      "role": "superadmin",
-      "module": "companies",
-      "path": "/api/companies",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "superadmin",
-      "module": "companies",
-      "path": "/api/companies/3a28f65a-03d6-4648-ba26-2725e84ff20d/stats",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "employees",
-      "path": "/api/employees",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "employees",
-      "path": "/api/employees/departments",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "employee",
-      "module": "attendance",
-      "path": "/api/attendance/records",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "employee",
-      "module": "leave",
-      "path": "/api/leave/balances/my",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "employee",
-      "module": "leave",
-      "path": "/api/leave/requests/my",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "leave",
-      "path": "/api/leave/types",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "leave",
-      "path": "/api/leave/requests",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "payroll",
-      "path": "/api/payroll/cycles",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "employee",
-      "module": "payroll",
-      "path": "/api/payroll/payslips/my",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "documents",
-      "path": "/api/documents",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "employee",
-      "module": "documents",
-      "path": "/api/documents/pending-signatures/my",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "performance",
-      "path": "/api/performance/cycles",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "performance",
-      "path": "/api/performance/goals",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "performance",
-      "path": "/api/performance/appraisals",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "recruitment",
-      "path": "/api/recruitment/postings",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "recruitment",
-      "path": "/api/recruitment/applicants",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "training",
-      "path": "/api/training/trainings",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "discipline",
-      "path": "/api/discipline/incidents",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "termination",
-      "path": "/api/termination",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    },
-    {
-      "role": "hradmin",
-      "module": "audit",
-      "path": "/api/audit/logs",
-      "type": "api_smoke",
-      "status": 200,
-      "pass": true,
-      "message": "ok"
-    }
-  ],
-  "summary": {
-    "api": {
-      "pass": 27,
-      "total": 27
-    },
-    "uiLogins": {
-      "pass": 5,
-      "total": 5
-    },
-    "uiPages": {
-      "pass": 14,
-      "total": 14
-    },
-    "interactions": {
-      "pass": 1,
-      "total": 1
-    }
-  }
+  "failedApiTests": [],
+  "failedUiLogins": [],
+  "failedUiRoutes": []
 }

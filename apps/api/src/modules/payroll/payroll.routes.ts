@@ -85,6 +85,13 @@ router.post(
  * View Routes (HR Admin and above)
  */
 router.get(
+  '/reports/summary',
+  authenticate,
+  requireAnyRole(['HR_OFFICER', 'HR_ADMIN', 'SUPER_ADMIN', 'GM']),
+  payrollController.getSummary.bind(payrollController)
+);
+
+router.get(
   '/cycles',
   authenticate,
   requireHRAdmin,

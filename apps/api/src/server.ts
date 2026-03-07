@@ -27,6 +27,8 @@ import disciplineRoutes from './modules/discipline/discipline.routes';
 import terminationRoutes from './modules/termination/termination.routes';
 import auditRoutes from './modules/audit/audit.routes';
 import recruitmentRoutes from './modules/recruitment/recruitment.routes';
+import onboardingRoutes from './modules/onboarding/onboarding.routes';
+import mobileAuthRoutes from './modules/mobile-auth/mobile-auth.routes';
 
 const app: Application = express();
 
@@ -122,6 +124,8 @@ app.use('/api/discipline', disciplineRoutes);
 app.use('/api/termination', terminationRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/recruitment', recruitmentRoutes);
+app.use('/api', onboardingRoutes);
+app.use('/api/mobile/auth', mobileAuthRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
