@@ -1,0 +1,1008 @@
+// Enterprise HRIS Platform - Database Schema
+// This schema defines all entities for the production-grade HRIS system
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// CORE ENTITIES
+// ============================================================================
+
+model Company {
+  id         String    @id @default(uuid())
+  name       String
+  name_ar    String?
+  code       String    @unique
+  settings   Json?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  // Relations
+  users                  User[]
+  employees              Employee[]
+  departments            Department[]
+  roles                  Role[]
+  documents              Document[]
+  attendance_records     AttendanceRecord[]
+  attendance_locations   AttendanceLocation[]
+  leave_types            LeaveType[]
+  payroll_cycles         PayrollCycle[]
+  job_postings           JobPosting[]
+  performance_cycles     PerformanceCycle[]
+  disciplinary_incidents DisciplinaryIncident[]
+  terminations           Termination[]
+  audit_logs             AuditLog[]
+
+  @@index([deleted_at])
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password_hash String
+  company_id    String
+  employee_id   String?   @unique
+  is_active     Boolean   @default(true)
+  last_login    DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+
+  // Relations
+  company           Company    @relation(fields: [company_id], references: [id])
+  employee          Employee?  @relation(fields: [employee_id], references: [id])
+  user_roles        UserRole[]
+  audit_logs        AuditLog[]
+  created_documents Document[] @relation("DocumentCreator")
+
+  @@index([company_id])
+  @@index([email])
+  @@index([deleted_at])
+}
+
+model Employee {
+  id              String    @id @default(uuid())
+  company_id      String
+  employee_number String    @unique
+  first_name      String
+  first_name_ar   String?
+  last_name       String
+  last_name_ar    String?
+  email           String
+  phone           String?
+  hire_date       DateTime
+  department_id   String
+  manager_id      String?
+  position        String
+  position_ar     String?
+  status          String    @default("ACTIVE") // ACTIVE, ON_PROBATION, SUSPENDED, TERMINATED
+  probation_end   DateTime?
+  date_of_birth   DateTime?
+  nationality     String?
+  iqama_number    String?
+  passport_number String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  deleted_at      DateTime?
+
+  // Relations
+  company               Company                @relation(fields: [company_id], references: [id])
+  department            Department             @relation(fields: [department_id], references: [id])
+  manager               Employee?              @relation("ManagerHierarchy", fields: [manager_id], references: [id])
+  reports               Employee[]             @relation("ManagerHierarchy")
+  user                  User?
+  documents             Document[]
+  attendance_records    AttendanceRecord[]
+  leave_balances        LeaveBalance[]
+  leave_requests        LeaveRequest[]
+  payroll_records       PayrollRecord[]
+  salary_structure      SalaryStructure?
+  performance_goals     Goal[]
+  appraisals            Appraisal[]
+  training_records      TrainingRecord[]
+  certifications        Certification[]
+  disciplinary_subjects DisciplinaryIncident[] @relation("SubjectEmployee")
+  termination           Termination?
+  onboarding_checklist  OnboardingChecklist?
+  applicant             Applicant?
+
+  @@index([company_id])
+  @@index([department_id])
+  @@index([manager_id])
+  @@index([status])
+  @@index([deleted_at])
+}
+
+model Department {
+  id         String    @id @default(uuid())
+  company_id String
+  name       String
+  name_ar    String?
+  code       String
+  parent_id  String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  // Relations
+  company   Company      @relation(fields: [company_id], references: [id])
+  parent    Department?  @relation("DepartmentHierarchy", fields: [parent_id], references: [id])
+  children  Department[] @relation("DepartmentHierarchy")
+  employees Employee[]
+
+  @@unique([company_id, code])
+  @@index([company_id])
+  @@index([parent_id])
+  @@index([deleted_at])
+}
+
+// ============================================================================
+// RBAC (Role-Based Access Control)
+// ============================================================================
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String
+  name_ar     String?
+  description String?
+  company_id  String? // null = system role (e.g., SUPER_ADMIN)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  company     Company?         @relation(fields: [company_id], references: [id])
+  permissions RolePermission[]
+  user_roles  UserRole[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  resource    String // e.g., 'employees', 'payroll', 'documents'
+  action      String // e.g., 'create', 'read', 'update', 'delete', 'approve'
+  scope       String // 'own', 'department', 'company', 'all'
+  description String?
+  created_at  DateTime @default(now())
+
+  // Relations
+  roles RolePermission[]
+
+  @@unique([resource, action, scope])
+  @@index([resource])
+}
+
+model RolePermission {
+  role_id       String
+  permission_id String
+  granted_at    DateTime @default(now())
+
+  // Relations
+  role       Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, permission_id])
+  @@index([role_id])
+  @@index([permission_id])
+}
+
+model UserRole {
+  user_id     String
+  role_id     String
+  company_id  String
+  assigned_at DateTime @default(now())
+  assigned_by String?
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, role_id, company_id])
+  @@index([user_id])
+  @@index([role_id])
+  @@index([company_id])
+}
+
+// ============================================================================
+// RECRUITMENT (ATS)
+// ============================================================================
+
+model JobPosting {
+  id             String    @id @default(uuid())
+  company_id     String
+  title          String
+  title_ar       String?
+  description    String
+  description_ar String?
+  department_id  String?
+  requirements   Json?
+  status         String    @default("DRAFT") // DRAFT, PUBLISHED, CLOSED
+  published_at   DateTime?
+  closed_at      DateTime?
+  created_by     String
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  // Relations
+  company    Company     @relation(fields: [company_id], references: [id])
+  applicants Applicant[]
+
+  @@index([company_id])
+  @@index([status])
+}
+
+model Applicant {
+  id             String   @id @default(uuid())
+  job_posting_id String
+  first_name     String
+  last_name      String
+  email          String
+  phone          String
+  resume_path    String?
+  status         String   @default("NEW") // NEW, SCREENING, INTERVIEW, OFFER, HIRED, REJECTED
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  employee_id    String?  @unique // Set when converted to employee
+
+  // Relations
+  job_posting JobPosting  @relation(fields: [job_posting_id], references: [id])
+  interviews  Interview[]
+  employee    Employee?   @relation(fields: [employee_id], references: [id])
+
+  @@index([job_posting_id])
+  @@index([status])
+  @@index([email])
+}
+
+model Interview {
+  id              String   @id @default(uuid())
+  applicant_id    String
+  scheduled_at    DateTime
+  interviewer_ids Json // Array of user IDs
+  type            String // PHONE, VIDEO, IN_PERSON
+  status          String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  notes           String?
+  rating          Int? // 1-5
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  applicant Applicant           @relation(fields: [applicant_id], references: [id])
+  feedback  InterviewFeedback[]
+
+  @@index([applicant_id])
+  @@index([scheduled_at])
+}
+
+model InterviewFeedback {
+  id             String   @id @default(uuid())
+  interview_id   String
+  interviewer_id String
+  rating         Int // 1-5
+  feedback       String
+  recommendation String // STRONG_YES, YES, MAYBE, NO, STRONG_NO
+  created_at     DateTime @default(now())
+
+  // Relations
+  interview Interview @relation(fields: [interview_id], references: [id])
+
+  @@index([interview_id])
+}
+
+// ============================================================================
+// ONBOARDING
+// ============================================================================
+
+model OnboardingChecklist {
+  id           String    @id @default(uuid())
+  employee_id  String    @unique
+  status       String    @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
+  completed_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  // Relations
+  employee Employee         @relation(fields: [employee_id], references: [id])
+  tasks    OnboardingTask[]
+
+  @@index([employee_id])
+  @@index([status])
+}
+
+model OnboardingTask {
+  id           String    @id @default(uuid())
+  checklist_id String
+  title        String
+  title_ar     String?
+  description  String?
+  order        Int
+  is_completed Boolean   @default(false)
+  completed_at DateTime?
+  completed_by String?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  // Relations
+  checklist OnboardingChecklist @relation(fields: [checklist_id], references: [id], onDelete: Cascade)
+
+  @@index([checklist_id])
+  @@index([is_completed])
+}
+
+// ============================================================================
+// DOCUMENTS
+// ============================================================================
+
+model Document {
+  id                String    @id @default(uuid())
+  company_id        String
+  employee_id       String?
+  title             String
+  title_ar          String?
+  category          String // CONTRACT, IQAMA, PASSPORT, CERTIFICATE, POLICY, etc.
+  file_path         String
+  file_type         String
+  file_size         Int
+  current_version   Int       @default(1)
+  expiry_date       DateTime?
+  status            String    @default("DRAFT") // DRAFT, PENDING_SIGNATURE, SIGNED, EXPIRED, ARCHIVED
+  allow_download    Boolean   @default(true)
+  require_signature Boolean   @default(false)
+  created_by        String
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  deleted_at        DateTime?
+
+  // Relations
+  company        Company                @relation(fields: [company_id], references: [id])
+  employee       Employee?              @relation(fields: [employee_id], references: [id])
+  creator        User                   @relation("DocumentCreator", fields: [created_by], references: [id])
+  versions       DocumentVersion[]
+  signatures     DocumentSignature[]
+  approval_chain DocumentApprovalChain?
+  access_logs    DocumentAccessLog[]
+
+  @@index([company_id])
+  @@index([employee_id])
+  @@index([category])
+  @@index([status])
+  @@index([expiry_date])
+  @@index([deleted_at])
+}
+
+model DocumentVersion {
+  id             String   @id @default(uuid())
+  document_id    String
+  version_number Int
+  file_path      String
+  file_size      Int
+  changes        String?
+  created_by     String
+  created_at     DateTime @default(now())
+
+  // Relations
+  document Document @relation(fields: [document_id], references: [id], onDelete: Cascade)
+
+  @@unique([document_id, version_number])
+  @@index([document_id])
+}
+
+model DocumentApprovalChain {
+  id           String   @id @default(uuid())
+  document_id  String   @unique
+  status       String   @default("PENDING") // PENDING, IN_PROGRESS, APPROVED, REJECTED
+  current_step Int      @default(1)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Relations
+  document Document               @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  steps    DocumentApprovalStep[]
+
+  @@index([status])
+}
+
+model DocumentApprovalStep {
+  id               String    @id @default(uuid())
+  chain_id         String
+  step_order       Int
+  approver_id      String
+  approver_role    String
+  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  approved_at      DateTime?
+  rejection_reason String?
+  created_at       DateTime  @default(now())
+
+  // Relations
+  chain DocumentApprovalChain @relation(fields: [chain_id], references: [id], onDelete: Cascade)
+
+  @@unique([chain_id, step_order])
+  @@index([chain_id])
+  @@index([approver_id])
+  @@index([status])
+}
+
+model DocumentSignature {
+  id             String   @id @default(uuid())
+  document_id    String
+  signer_id      String
+  signature_data String // Base64 signature image
+  signature_type String   @default("DIGITAL") // DIGITAL, ELECTRONIC
+  signed_at      DateTime @default(now())
+  ip_address     String
+  user_agent     String
+  device_info    Json?
+  geolocation    Json?
+  order_in_chain Int
+
+  // Relations
+  document Document @relation(fields: [document_id], references: [id], onDelete: Cascade)
+
+  @@index([document_id])
+  @@index([signer_id])
+}
+
+model DocumentAccessLog {
+  id          String   @id @default(uuid())
+  document_id String
+  user_id     String
+  action      String // VIEW, DOWNLOAD, PRINT
+  ip_address  String
+  user_agent  String
+  accessed_at DateTime @default(now())
+
+  // Relations
+  document Document @relation(fields: [document_id], references: [id], onDelete: Cascade)
+
+  @@index([document_id])
+  @@index([user_id])
+  @@index([accessed_at])
+}
+
+// ============================================================================
+// ATTENDANCE SYSTEM (WITH ANTI-SPOOFING)
+// ============================================================================
+
+model AttendanceLocation {
+  id            String   @id @default(uuid())
+  company_id    String
+  name          String
+  name_ar       String?
+  latitude      Float
+  longitude     Float
+  radius_meters Int      @default(100)
+  wifi_ssids    Json? // Array of allowed WiFi SSIDs
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  company Company            @relation(fields: [company_id], references: [id])
+  rules   AttendanceRule[]
+  records AttendanceRecord[]
+
+  @@index([company_id])
+  @@index([is_active])
+}
+
+model AttendanceRule {
+  id                      String   @id @default(uuid())
+  location_id             String
+  name                    String
+  require_gps             Boolean  @default(true)
+  require_selfie          Boolean  @default(true)
+  require_wifi            Boolean  @default(false)
+  require_device_binding  Boolean  @default(true)
+  allowed_check_in_start  String // HH:mm
+  allowed_check_in_end    String // HH:mm
+  allowed_check_out_start String // HH:mm
+  allowed_check_out_end   String // HH:mm
+  is_active               Boolean  @default(true)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  // Relations
+  location AttendanceLocation @relation(fields: [location_id], references: [id])
+
+  @@index([location_id])
+  @@index([is_active])
+}
+
+model AttendanceDevice {
+  id                 String    @id @default(uuid())
+  employee_id        String
+  device_model       String
+  device_os          String
+  device_fingerprint String    @unique
+  is_approved        Boolean   @default(false)
+  approved_by        String?
+  approved_at        DateTime?
+  is_active          Boolean   @default(true)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  // Relations
+  records AttendanceRecord[]
+
+  @@index([employee_id])
+  @@index([is_approved])
+  @@index([device_fingerprint])
+}
+
+model AttendanceRecord {
+  id             String    @id @default(uuid())
+  company_id     String
+  employee_id    String
+  location_id    String
+  device_id      String
+  check_in_time  DateTime
+  check_out_time DateTime?
+
+  // GPS Data
+  gps_latitude  Float
+  gps_longitude Float
+  gps_accuracy  Float
+  gps_altitude  Float?
+  gps_speed     Float?
+
+  // WiFi Data
+  wifi_ssid String?
+
+  // Selfie Data
+  selfie_path     String?
+  selfie_hash     String?
+  selfie_metadata Json?
+
+  // Validation Results
+  validation_result Json
+  flags             String[] // Array of flags (GPS_LOW_ACCURACY, SELFIE_DUPLICATE, etc.)
+  status            String   @default("VALID") // VALID, FLAGGED, APPROVED, REJECTED
+
+  // Corrections
+  correction_requested   Boolean   @default(false)
+  correction_reason      String?
+  correction_approved_by String?
+  correction_approved_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  company  Company            @relation(fields: [company_id], references: [id])
+  employee Employee           @relation(fields: [employee_id], references: [id])
+  location AttendanceLocation @relation(fields: [location_id], references: [id])
+  device   AttendanceDevice   @relation(fields: [device_id], references: [id])
+
+  @@index([company_id])
+  @@index([employee_id])
+  @@index([location_id])
+  @@index([check_in_time])
+  @@index([status])
+  @@index([flags])
+}
+
+// ============================================================================
+// LEAVE MANAGEMENT
+// ============================================================================
+
+model LeaveType {
+  id                String   @id @default(uuid())
+  company_id        String
+  name              String
+  name_ar           String?
+  code              String
+  days_per_year     Int
+  is_paid           Boolean  @default(true)
+  requires_approval Boolean  @default(true)
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  company  Company        @relation(fields: [company_id], references: [id])
+  balances LeaveBalance[]
+  requests LeaveRequest[]
+
+  @@unique([company_id, code])
+  @@index([company_id])
+  @@index([is_active])
+}
+
+model LeaveBalance {
+  id             String   @id @default(uuid())
+  employee_id    String
+  leave_type_id  String
+  year           Int
+  total_days     Float
+  used_days      Float    @default(0)
+  remaining_days Float
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Relations
+  employee   Employee  @relation(fields: [employee_id], references: [id])
+  leave_type LeaveType @relation(fields: [leave_type_id], references: [id])
+
+  @@unique([employee_id, leave_type_id, year])
+  @@index([employee_id])
+  @@index([leave_type_id])
+  @@index([year])
+}
+
+model LeaveRequest {
+  id               String    @id @default(uuid())
+  employee_id      String
+  leave_type_id    String
+  start_date       DateTime
+  end_date         DateTime
+  total_days       Float
+  reason           String?
+  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  approved_by      String?
+  approved_at      DateTime?
+  rejection_reason String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  // Relations
+  employee   Employee  @relation(fields: [employee_id], references: [id])
+  leave_type LeaveType @relation(fields: [leave_type_id], references: [id])
+
+  @@index([employee_id])
+  @@index([leave_type_id])
+  @@index([status])
+  @@index([start_date])
+}
+
+model Holiday {
+  id           String   @id @default(uuid())
+  company_id   String? // null = national holiday
+  name         String
+  name_ar      String?
+  date         DateTime
+  is_recurring Boolean  @default(false)
+  created_at   DateTime @default(now())
+
+  @@index([date])
+  @@index([company_id])
+}
+
+// ============================================================================
+// PAYROLL SYSTEM (WITH GM APPROVAL)
+// ============================================================================
+
+model PayrollCycle {
+  id           String   @id @default(uuid())
+  company_id   String
+  period_start DateTime
+  period_end   DateTime
+  status       String   @default("DRAFT") // DRAFT, PENDING_REVIEW, PENDING_GM_APPROVAL, APPROVED, EXECUTED, REJECTED
+
+  // Workflow tracking
+  prepared_by    String
+  prepared_at    DateTime  @default(now())
+  reviewed_by    String?
+  reviewed_at    DateTime?
+  approved_by_gm String? // CRITICAL: GM approval
+  approved_at_gm DateTime?
+  executed_by    String?
+  executed_at    DateTime?
+
+  is_locked Boolean @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  company Company         @relation(fields: [company_id], references: [id])
+  records PayrollRecord[]
+
+  @@index([company_id])
+  @@index([status])
+  @@index([period_start])
+  @@index([period_end])
+}
+
+model SalaryStructure {
+  id                  String    @id @default(uuid())
+  employee_id         String    @unique
+  basic_salary        Float
+  housing_allowance   Float     @default(0)
+  transport_allowance Float     @default(0)
+  other_allowances    Json?
+  effective_from      DateTime
+  effective_to        DateTime?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  // Relations
+  employee Employee @relation(fields: [employee_id], references: [id])
+
+  @@index([employee_id])
+  @@index([effective_from])
+}
+
+model PayrollRecord {
+  id          String @id @default(uuid())
+  cycle_id    String
+  employee_id String
+
+  // Earnings
+  basic_salary    Float
+  allowances      Json // { housing: 1000, transport: 500, ... }
+  overtime_amount Float @default(0)
+  bonuses         Float @default(0)
+  gross_salary    Float
+
+  // Deductions
+  deductions       Json // { insurance: 100, tax: 200, ... }
+  total_deductions Float
+
+  // Net
+  net_salary Float
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  cycle    PayrollCycle @relation(fields: [cycle_id], references: [id], onDelete: Cascade)
+  employee Employee     @relation(fields: [employee_id], references: [id])
+
+  @@unique([cycle_id, employee_id])
+  @@index([cycle_id])
+  @@index([employee_id])
+}
+
+// ============================================================================
+// PERFORMANCE MANAGEMENT
+// ============================================================================
+
+model PerformanceCycle {
+  id         String   @id @default(uuid())
+  company_id String
+  name       String
+  name_ar    String?
+  start_date DateTime
+  end_date   DateTime
+  status     String   @default("ACTIVE") // ACTIVE, COMPLETED
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  company    Company     @relation(fields: [company_id], references: [id])
+  appraisals Appraisal[]
+
+  @@index([company_id])
+  @@index([status])
+}
+
+model Goal {
+  id          String   @id @default(uuid())
+  employee_id String
+  title       String
+  title_ar    String?
+  description String?
+  target_date DateTime
+  status      String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, CANCELLED
+  progress    Int      @default(0) // 0-100
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  employee Employee @relation(fields: [employee_id], references: [id])
+
+  @@index([employee_id])
+  @@index([status])
+}
+
+model Appraisal {
+  id                    String    @id @default(uuid())
+  cycle_id              String
+  employee_id           String
+  reviewer_id           String
+  rating                Int // 1-5
+  feedback              String
+  strengths             String?
+  areas_for_improvement String?
+  status                String    @default("DRAFT") // DRAFT, SUBMITTED, ACKNOWLEDGED
+  submitted_at          DateTime?
+  acknowledged_at       DateTime?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  cycle    PerformanceCycle @relation(fields: [cycle_id], references: [id])
+  employee Employee         @relation(fields: [employee_id], references: [id])
+
+  @@index([cycle_id])
+  @@index([employee_id])
+  @@index([reviewer_id])
+}
+
+// ============================================================================
+// TRAINING & CERTIFICATIONS
+// ============================================================================
+
+model TrainingRecord {
+  id               String   @id @default(uuid())
+  employee_id      String
+  title            String
+  title_ar         String?
+  provider         String?
+  start_date       DateTime
+  end_date         DateTime
+  status           String   @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+  certificate_path String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  // Relations
+  employee Employee @relation(fields: [employee_id], references: [id])
+
+  @@index([employee_id])
+  @@index([status])
+}
+
+model Certification {
+  id               String    @id @default(uuid())
+  employee_id      String
+  name             String
+  name_ar          String?
+  issuing_org      String
+  issue_date       DateTime
+  expiry_date      DateTime?
+  certificate_path String?
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  // Relations
+  employee Employee @relation(fields: [employee_id], references: [id])
+
+  @@index([employee_id])
+  @@index([expiry_date])
+  @@index([is_active])
+}
+
+// ============================================================================
+// DISCIPLINARY ACTIONS
+// ============================================================================
+
+model DisciplinaryIncident {
+  id            String    @id @default(uuid())
+  company_id    String
+  employee_id   String
+  incident_date DateTime
+  type          String // WARNING, SUSPENSION, TERMINATION_NOTICE
+  description   String
+  severity      String // LOW, MEDIUM, HIGH, CRITICAL
+  reported_by   String
+  status        String    @default("PENDING") // PENDING, UNDER_REVIEW, RESOLVED, CLOSED
+  resolution    String?
+  resolved_at   DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  // Relations
+  company  Company              @relation(fields: [company_id], references: [id])
+  employee Employee             @relation("SubjectEmployee", fields: [employee_id], references: [id])
+  actions  DisciplinaryAction[]
+
+  @@index([company_id])
+  @@index([employee_id])
+  @@index([status])
+  @@index([incident_date])
+}
+
+model DisciplinaryAction {
+  id          String    @id @default(uuid())
+  incident_id String
+  action_type String // VERBAL_WARNING, WRITTEN_WARNING, SUSPENSION, TERMINATION
+  action_date DateTime
+  description String
+  approved_by String?
+  approved_at DateTime?
+  created_at  DateTime  @default(now())
+
+  // Relations
+  incident DisciplinaryIncident @relation(fields: [incident_id], references: [id], onDelete: Cascade)
+
+  @@index([incident_id])
+}
+
+// ============================================================================
+// TERMINATION & EXIT
+// ============================================================================
+
+model Termination {
+  id                      String    @id @default(uuid())
+  company_id              String
+  employee_id             String    @unique
+  termination_type        String // RESIGNATION, TERMINATION, RETIREMENT, END_OF_CONTRACT
+  notice_date             DateTime
+  last_working_day        DateTime
+  reason                  String?
+  status                  String    @default("PENDING") // PENDING, APPROVED, COMPLETED
+  approved_by             String?
+  approved_at             DateTime?
+  final_settlement_amount Float?
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  // Relations
+  company   Company        @relation(fields: [company_id], references: [id])
+  employee  Employee       @relation(fields: [employee_id], references: [id])
+  checklist ExitChecklist?
+
+  @@index([company_id])
+  @@index([employee_id])
+  @@index([status])
+}
+
+model ExitChecklist {
+  id             String    @id @default(uuid())
+  termination_id String    @unique
+  items          Json // Array of checklist items
+  is_completed   Boolean   @default(false)
+  completed_at   DateTime?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  // Relations
+  termination Termination @relation(fields: [termination_id], references: [id], onDelete: Cascade)
+
+  @@index([termination_id])
+  @@index([is_completed])
+}
+
+// ============================================================================
+// AUDIT & COMPLIANCE
+// ============================================================================
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  timestamp     DateTime @default(now())
+  user_id       String
+  company_id    String
+  action        String // CREATE, UPDATE, DELETE, VIEW, APPROVE, REJECT, etc.
+  resource_type String // employee, document, payroll, attendance, etc.
+  resource_id   String
+  ip_address    String
+  user_agent    String
+  changes       Json? // { before: {}, after: {} }
+  metadata      Json?
+
+  // Relations
+  user    User    @relation(fields: [user_id], references: [id])
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@index([company_id])
+  @@index([user_id])
+  @@index([resource_type, resource_id])
+  @@index([timestamp])
+  @@index([action])
+}
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updated_at  DateTime @updatedAt
+  updated_by  String?
+
+  @@index([key])
+}

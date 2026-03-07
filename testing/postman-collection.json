@@ -1,0 +1,430 @@
+{
+  "info": {
+    "name": "Enterprise HRIS API",
+    "description": "Complete API testing collection for Enterprise HRIS Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (HR Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success) {",
+                  "    pm.environment.set('accessToken', response.data.tokens.accessToken);",
+                  "    pm.environment.set('refreshToken', response.data.tokens.refreshToken);",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hr.admin@alnoor.com\",\n  \"password\": \"Hris2026!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "search", "value": "", "disabled": true},
+                {"key": "departmentId", "value": "", "disabled": true},
+                {"key": "status", "value": "ACTIVE", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeNumber\": \"EMP999\",\n  \"firstName\": \"Test\",\n  \"firstNameAr\": \"اختبار\",\n  \"lastName\": \"Employee\",\n  \"lastNameAr\": \"موظف\",\n  \"email\": \"test.employee@alnoor.com\",\n  \"phone\": \"+966501234567\",\n  \"hireDate\": \"2026-02-01\",\n  \"departmentId\": \"dept-123\",\n  \"position\": \"Test Position\",\n  \"positionAr\": \"منصب الاختبار\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"]
+            }
+          }
+        },
+        {
+          "name": "Get Departments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/departments",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "departments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Check In",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locationId\": \"loc-main-office\",\n  \"gps\": {\n    \"latitude\": 24.7136,\n    \"longitude\": 46.6753,\n    \"accuracy\": 10\n  },\n  \"wifiSSID\": \"Company-WiFi\",\n  \"deviceInfo\": {\n    \"deviceId\": \"test-device-123\",\n    \"userAgent\": \"PostmanRuntime/7.26.8\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/check-in",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "check-in"]
+            }
+          }
+        },
+        {
+          "name": "Check Out",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/check-out",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "check-out"]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/records?startDate=2026-02-01&endDate=2026-02-28",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "records"],
+              "query": [
+                {"key": "startDate", "value": "2026-02-01"},
+                {"key": "endDate", "value": "2026-02-28"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leave Management",
+      "item": [
+        {
+          "name": "Get Leave Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/types",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "types"]
+            }
+          }
+        },
+        {
+          "name": "Get My Leave Balances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/balances/my?year=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "balances", "my"],
+              "query": [{"key": "year", "value": "2026"}]
+            }
+          }
+        },
+        {
+          "name": "Create Leave Request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveTypeId\": \"lt-annual\",\n  \"startDate\": \"2026-03-10\",\n  \"endDate\": \"2026-03-14\",\n  \"reason\": \"Family vacation\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests"]
+            }
+          }
+        },
+        {
+          "name": "Get Leave Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests?status=PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests"],
+              "query": [{"key": "status", "value": "PENDING"}]
+            }
+          }
+        },
+        {
+          "name": "Approve Leave Request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests/:requestId/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests", ":requestId", "approve"],
+              "variable": [{"key": "requestId", "value": ""}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payroll",
+      "item": [
+        {
+          "name": "Get Payroll Cycles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/cycles",
+              "host": ["{{baseUrl}}"],
+              "path": ["payroll", "cycles"]
+            }
+          }
+        },
+        {
+          "name": "Create Payroll Cycle",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"periodStart\": \"2026-02-01\",\n  \"periodEnd\": \"2026-02-28\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payroll/cycles",
+              "host": ["{{baseUrl}}"],
+              "path": ["payroll", "cycles"]
+            }
+          }
+        },
+        {
+          "name": "Get My Payslips",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payroll/payslips/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["payroll", "payslips", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recruitment",
+      "item": [
+        {
+          "name": "Get Job Postings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/postings?status=PUBLISHED",
+              "host": ["{{baseUrl}}"],
+              "path": ["recruitment", "postings"],
+              "query": [{"key": "status", "value": "PUBLISHED"}]
+            }
+          }
+        },
+        {
+          "name": "Create Job Posting",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Software Developer\",\n  \"titleAr\": \"مطور برمجيات أول\",\n  \"departmentId\": \"dept-eng\",\n  \"position\": \"Software Developer\",\n  \"description\": \"Looking for experienced developer\",\n  \"requirements\": \"5+ years, Node.js, React\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/postings",
+              "host": ["{{baseUrl}}"],
+              "path": ["recruitment", "postings"]
+            }
+          }
+        },
+        {
+          "name": "Get Applicants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recruitment/applicants",
+              "host": ["{{baseUrl}}"],
+              "path": ["recruitment", "applicants"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
