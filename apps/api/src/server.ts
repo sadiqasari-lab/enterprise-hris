@@ -65,6 +65,8 @@ app.use(helmet({
   },
 }));
 
+const isDev = config.env === 'development';
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -72,7 +74,7 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'OPTIONS',
+  skip: (req) => isDev || req.method === 'OPTIONS',
 });
 
 app.use('/api/', limiter);
@@ -82,7 +84,7 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: config.env === 'development' ? 1000 : 5, // Relaxed in local dev
   message: 'Too many login attempts, please try again later.',
-  skip: (req) => req.method === 'OPTIONS',
+  skip: (req) => isDev || req.method === 'OPTIONS',
 });
 
 app.use('/api/auth/login', authLimiter);
