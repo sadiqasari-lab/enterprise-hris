@@ -179,6 +179,74 @@ class APIClient {
     return response.data
   }
 
+  // Mobile Profile API
+  async getMobileProfile() {
+    const response = await this.client.get('/mobile/profile/me')
+    return response.data
+  }
+
+  async updateMobileProfile(data: {
+    firstName?: string
+    lastName?: string
+    phone?: string
+    dateOfBirth?: string
+    nationality?: string
+  }) {
+    const response = await this.client.put('/mobile/profile/me', data)
+    return response.data
+  }
+
+  // Mobile Leave API
+  async getMobileLeaveTypes() {
+    const response = await this.client.get('/mobile/leave/types')
+    return response.data
+  }
+
+  async getMobileLeaveBalances(year?: number) {
+    const response = await this.client.get('/mobile/leave/balances', {
+      params: year ? { year } : undefined,
+    })
+    return response.data
+  }
+
+  async getMobileLeaveRequests(params?: {
+    status?: string
+    year?: number
+    page?: number
+    limit?: number
+  }) {
+    const response = await this.client.get('/mobile/leave/requests', { params })
+    return response.data
+  }
+
+  async mobileCreateLeaveRequest(data: {
+    leaveTypeId: string
+    startDate: string
+    endDate: string
+    reason?: string
+  }) {
+    const response = await this.client.post('/mobile/leave/requests', data)
+    return response.data
+  }
+
+  async mobileCancelLeaveRequest(requestId: string) {
+    const response = await this.client.post(`/mobile/leave/requests/${requestId}/cancel`)
+    return response.data
+  }
+
+  // Mobile Payslip API
+  async getMobilePayslips(year?: number) {
+    const response = await this.client.get('/mobile/payslips', {
+      params: year ? { year } : undefined,
+    })
+    return response.data
+  }
+
+  async getMobilePayslipDetail(cycleId: string) {
+    const response = await this.client.get(`/mobile/payslips/${cycleId}`)
+    return response.data
+  }
+
   // Payroll API
   async getPayslips() {
     const response = await this.client.get('/payroll/payslips/my')

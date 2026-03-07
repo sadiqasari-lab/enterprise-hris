@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Calendar, Clock, FileText, User } from 'lucide-react'
+import { Calendar, Clock, FileText, LucideIcon, User } from 'lucide-react'
 
 interface MobileShellProps {
   title: string
@@ -12,11 +12,18 @@ interface MobileShellProps {
   children: React.ReactNode
 }
 
-const navItems = [
+interface MobileNavItem {
+  href: string
+  label: string
+  icon: LucideIcon
+  disabled?: boolean
+}
+
+const navItems: MobileNavItem[] = [
   { href: '/mobile/attendance', label: 'Attendance', icon: Clock },
-  { href: '/mobile/profile', label: 'Profile', icon: User, disabled: true },
-  { href: '/mobile/leave', label: 'Leave', icon: Calendar, disabled: true },
-  { href: '/mobile/payslips', label: 'Payslips', icon: FileText, disabled: true },
+  { href: '/mobile/profile', label: 'Profile', icon: User },
+  { href: '/mobile/leave', label: 'Leave', icon: Calendar },
+  { href: '/mobile/payslips', label: 'Payslips', icon: FileText },
 ]
 
 export function MobileShell({ title, subtitle, children }: MobileShellProps) {
