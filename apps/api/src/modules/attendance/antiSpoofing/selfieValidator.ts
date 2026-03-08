@@ -9,6 +9,7 @@ import { config } from '../../../config';
 
 export interface SelfieValidationResult {
   isValid: boolean;
+  requiresHRApproval: boolean;
   flags: string[];
   imageHash: string;
   metadata?: any;
@@ -18,10 +19,18 @@ export interface SelfieValidationResult {
 export class SelfieValidator {
   private minWidth: number;
   private minHeight: number;
+  private minBytes: number;
+  private maxBytes: number;
+  private maxPixels: number;
+  private faceConfidenceThreshold: number;
 
   constructor() {
     this.minWidth = config.attendance.selfieMinResolution.width; // 480
     this.minHeight = config.attendance.selfieMinResolution.height; // 640
+    this.minBytes = 10 * 1024; // 10KB
+    this.maxBytes = 8 * 1024 * 1024; // 8MB
+    this.maxPixels = 20_000_000; // safety limit for pixel count
+    this.faceConfidenceThreshold = 0.7;
   }
 
   /**
@@ -42,51 +51,86 @@ export class SelfieValidator {
         flags.push('SELFIE_INVALID_FORMAT');
         return {
           isValid: false,
+          requiresHRApproval: true,
           flags,
           imageHash: '',
           message: 'Invalid image format',
         };
       }
 
-      // 2. Extract image metadata
+      // 2. Basic file size checks
+      if (imageBuffer.length < this.minBytes) {
+        flags.push('SELFIE_FILE_TOO_SMALL');
+      }
+      if (imageBuffer.length > this.maxBytes) {
+        flags.push('SELFIE_FILE_TOO_LARGE');
+      }
+
+      // 3. Extract image metadata
       const metadata = await this.extractMetadata(imageBuffer);
 
-      // 3. Validate image resolution
+      if (!metadata.width || !metadata.height) {
+        flags.push('SELFIE_INVALID_FORMAT');
+      }
+
+      // 4. Validate image resolution
       if (metadata.width < this.minWidth || metadata.height < this.minHeight) {
         flags.push('SELFIE_LOW_RESOLUTION');
       }
 
-      // 4. Check for camera metadata (EXIF data)
+      // 5. Check pixel count limits
+      if (metadata.width && metadata.height) {
+        const pixelCount = metadata.width * metadata.height;
+        if (pixelCount > this.maxPixels) {
+          flags.push('SELFIE_IMAGE_TOO_LARGE');
+        }
+      }
+
+      // 6. Check for camera metadata (EXIF data)
       if (!this.hasCameraMetadata(metadata)) {
         flags.push('SELFIE_NO_CAMERA_METADATA');
       }
 
-      // 5. Calculate image hash
+      // 7. Calculate image hash
       const imageHash = await this.calculateImageHash(imageBuffer);
 
-      // 6. Check for duplicate images
+      // 8. Check for duplicate images
       if (recentSelfieHashes.includes(imageHash)) {
         flags.push('SELFIE_DUPLICATE_IMAGE');
       }
 
-      // 7. Validate image size (too small might be suspicious)
-      if (imageBuffer.length < 10000) {
-        // Less than 10KB is suspicious
-        flags.push('SELFIE_FILE_TOO_SMALL');
-      }
-
-      // 8. Check for edited/filtered images
+      // 9. Check for edited/filtered images
       if (this.isSuspiciouslyEdited(metadata)) {
         flags.push('SELFIE_SUSPECTED_EDITED');
       }
 
-      // 9. Validate image format
+      // 10. Validate image format
       if (!['jpeg', 'jpg', 'png'].includes(metadata.format?.toLowerCase() || '')) {
         flags.push('SELFIE_INVALID_FORMAT');
       }
 
+      // 11. Face detection (stubbed, behind env flag)
+      const faceResult = await this.detectFace(imageBuffer);
+      if (!faceResult.detected) {
+        flags.push(
+          faceResult.reason === 'FACE_DETECTION_DISABLED'
+            ? 'SELFIE_FACE_DETECTION_DISABLED'
+            : 'SELFIE_FACE_NOT_CONFIRMED'
+        );
+      } else if (faceResult.confidence < this.faceConfidenceThreshold) {
+        flags.push('SELFIE_LOW_FACE_CONFIDENCE');
+      }
+
+      const faceReviewFlags = [
+        'SELFIE_FACE_DETECTION_DISABLED',
+        'SELFIE_FACE_NOT_CONFIRMED',
+        'SELFIE_LOW_FACE_CONFIDENCE',
+      ];
+      const requiresHRApproval = flags.some((flag) => faceReviewFlags.includes(flag));
+
       return {
         isValid: flags.length === 0,
+        requiresHRApproval,
         flags,
         imageHash,
         metadata: {
@@ -95,6 +139,12 @@ export class SelfieValidator {
           format: metadata.format,
           size: imageBuffer.length,
           hasExif: metadata.exif !== undefined,
+          faceDetection: {
+            enabled: process.env.FACE_DETECTION_ENABLED === 'true',
+            detected: faceResult.detected,
+            confidence: faceResult.confidence,
+            reason: faceResult.reason,
+          },
         },
         message: flags.length > 0 ? this.formatFlagsMessage(flags) : undefined,
       };
@@ -102,6 +152,7 @@ export class SelfieValidator {
       flags.push('SELFIE_PROCESSING_ERROR');
       return {
         isValid: false,
+        requiresHRApproval: true,
         flags,
         imageHash: '',
         message: `Error processing selfie: ${error.message}`,
@@ -116,6 +167,12 @@ export class SelfieValidator {
     try {
       // Remove data URI prefix if present
       const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
+      if (!base64Data || base64Data.length < 32) {
+        return null;
+      }
+      if (!/^[A-Za-z0-9+/=\r\n]+$/.test(base64Data)) {
+        return null;
+      }
       return Buffer.from(base64Data, 'base64');
     } catch (error) {
       return null;
@@ -127,7 +184,10 @@ export class SelfieValidator {
    */
   private async extractMetadata(imageBuffer: Buffer): Promise<any> {
     try {
-      const image = sharp(imageBuffer);
+      const image = sharp(imageBuffer, {
+        failOnError: true,
+        limitInputPixels: this.maxPixels,
+      });
       const metadata = await image.metadata();
       return metadata;
     } catch (error) {
@@ -265,7 +325,12 @@ export class SelfieValidator {
       SELFIE_NO_CAMERA_METADATA: 'Missing camera metadata',
       SELFIE_DUPLICATE_IMAGE: 'This image has been used before',
       SELFIE_FILE_TOO_SMALL: 'Image file size is suspiciously small',
+      SELFIE_FILE_TOO_LARGE: 'Image file size is too large',
+      SELFIE_IMAGE_TOO_LARGE: 'Image dimensions are too large',
       SELFIE_SUSPECTED_EDITED: 'Image appears to be edited',
+      SELFIE_FACE_DETECTION_DISABLED: 'Face detection is disabled',
+      SELFIE_FACE_NOT_CONFIRMED: 'Face not confirmed in image',
+      SELFIE_LOW_FACE_CONFIDENCE: 'Face confidence is low',
       SELFIE_PROCESSING_ERROR: 'Error processing image',
     };
 
@@ -276,10 +341,17 @@ export class SelfieValidator {
    * Validate that image is a face (basic check)
    * This is a placeholder for more advanced face detection
    */
-  async validateFacePresent(imageBuffer: Buffer): Promise<boolean> {
-    // TODO: Implement face detection using a library like @vladmandic/face-api
-    // For now, return true (assume face is present)
-    return true;
+  private async detectFace(
+    _imageBuffer: Buffer
+  ): Promise<{ detected: boolean; confidence: number; reason?: string }> {
+    const enabled = process.env.FACE_DETECTION_ENABLED === 'true';
+    if (!enabled) {
+      return { detected: false, confidence: 0, reason: 'FACE_DETECTION_DISABLED' };
+    }
+
+    // TODO: Integrate lightweight face detection here when enabled.
+    // Keep this stub as the stable integration point.
+    return { detected: false, confidence: 0, reason: 'FACE_DETECTION_STUB' };
   }
 
   /**

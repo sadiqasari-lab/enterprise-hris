@@ -17,7 +17,7 @@ import { requestLogger } from './middleware/requestLogger';
 import authRoutes from './modules/auth/auth.routes';
 import employeeRoutes from './modules/employees/employee.routes';
 import companyRoutes from './modules/companies/company.routes';
-import documentRoutes from './modules/documents/document.routes';
+import documentRoutes from './modules/documents/documents.routes';
 import attendanceRoutes from './modules/attendance/attendance.routes';
 import leaveRoutes from './modules/leave/leave.routes';
 import payrollRoutes from './modules/payroll/payroll.routes';
