@@ -24,35 +24,44 @@ async function resolveEmployeeIdFromUser(userId: string): Promise<string> {
 }
 
 export class AttendanceController {
+  private async doCheckIn(req: Request) {
+    const { locationId, gps, selfie, wifiSSID, deviceInfo } = req.body;
+    const employeeId = await resolveEmployeeIdFromUser(req.userId!);
+
+    if (!locationId) {
+      throw new ApiError(400, 'Location ID is required');
+    }
+
+    return attendanceService.checkIn({
+      employeeId,
+      locationId,
+      gps: gps ? {
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+        accuracy: gps.accuracy,
+        altitude: gps.altitude,
+        speed: gps.speed,
+        timestamp: new Date(),
+      } : undefined,
+      selfie,
+      wifiSSID,
+      deviceInfo,
+      timestamp: new Date(),
+    });
+  }
+
+  private async doCheckOut(req: Request) {
+    const employeeId = await resolveEmployeeIdFromUser(req.userId!);
+    return attendanceService.checkOut(employeeId, new Date());
+  }
+
   /**
    * POST /api/attendance/check-in
    * Mobile check-in with anti-spoofing
    */
   async checkIn(req: Request, res: Response, next: NextFunction) {
     try {
-      const { locationId, gps, selfie, wifiSSID, deviceInfo } = req.body;
-      const employeeId = await resolveEmployeeIdFromUser(req.userId!);
-
-      if (!locationId) {
-        throw new ApiError(400, 'Location ID is required');
-      }
-
-      const result = await attendanceService.checkIn({
-        employeeId,
-        locationId,
-        gps: gps ? {
-          latitude: gps.latitude,
-          longitude: gps.longitude,
-          accuracy: gps.accuracy,
-          altitude: gps.altitude,
-          speed: gps.speed,
-          timestamp: new Date(),
-        } : undefined,
-        selfie,
-        wifiSSID,
-        deviceInfo,
-        timestamp: new Date(),
-      });
+      const result = await this.doCheckIn(req);
 
       const statusCode = result.success ? 200 : 400;
 
@@ -70,22 +79,62 @@ export class AttendanceController {
   }
 
   /**
+   * POST /api/attendance/clock-in
+   * Simplified response contract for dashboard.
+   */
+  async clockIn(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await this.doCheckIn(req);
+
+      if (!result.success) {
+        throw new ApiError(400, result.message || 'Check-in blocked');
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          status: 'checked_in',
+          checkInTime: result.record?.check_in_time || new Date().toISOString(),
+        },
+        message: 'Checked in successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * POST /api/attendance/check-out
    * Check-out employee
    */
   async checkOut(req: Request, res: Response, next: NextFunction) {
     try {
-      const employeeId = await resolveEmployeeIdFromUser(req.userId!);
-
-      const result = await attendanceService.checkOut(
-        employeeId,
-        new Date()
-      );
+      const result = await this.doCheckOut(req);
 
       res.status(200).json({
         success: true,
         data: result,
         message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/attendance/clock-out
+   * Simplified response contract for dashboard.
+   */
+  async clockOut(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await this.doCheckOut(req);
+      res.status(200).json({
+        success: true,
+        data: {
+          status: 'checked_out',
+          checkOutTime: result.record?.check_out_time || new Date().toISOString(),
+        },
+        message: 'Checked out successfully',
       });
     } catch (error) {
       next(error);
@@ -141,6 +190,40 @@ export class AttendanceController {
       res.status(200).json({
         success: true,
         data: summary,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/attendance/monthly
+   * Simplified response contract for dashboard.
+   */
+  async getMonthly(req: Request, res: Response, next: NextFunction) {
+    try {
+      const employeeId = await resolveEmployeeIdFromUser(req.userId!);
+      const { month, year } = req.query;
+
+      if (!month || !year) {
+        throw new ApiError(400, 'Month and year are required');
+      }
+
+      const summary = await attendanceService.getAttendanceSummary(
+        employeeId,
+        parseInt(month as string, 10),
+        parseInt(year as string, 10)
+      );
+
+      res.status(200).json({
+        success: true,
+        data: {
+          present: summary.validDays,
+          late: summary.flaggedDays,
+          absent: summary.rejectedDays,
+          total: summary.totalDays,
+          records: summary.records,
+        },
       });
     } catch (error) {
       next(error);

@@ -1,306 +1,367 @@
 "use client"
 
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ColumnDef } from '@tanstack/react-table'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Calendar, Clock, Download, FileText, LogIn, LogOut, RefreshCw, X } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { employeeNavigation } from '@/lib/navigation'
+import { apiClient } from '@/lib/api-client'
+import { EmployeeStats } from '@/components/dashboard/EmployeeStats'
+import { DocumentTable } from '@/components/documents/document-table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-  Home,
-  Clock,
-  Calendar,
-  FileText,
-  User,
-  Award,
-  Bell,
-  MapPin,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-} from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { formatCurrency, formatDate } from '@/lib/utils'
 
-const navigation = [
-  { label: 'Dashboard', href: '/employee', icon: Home },
-  { label: 'Attendance', href: '/employee/attendance', icon: Clock },
-  { label: 'Leave', href: '/employee/leave', icon: Calendar },
-  { label: 'Payslips', href: '/employee/payslips', icon: FileText },
-  { label: 'Documents', href: '/employee/documents', icon: FileText },
-  { label: 'Profile', href: '/employee/profile', icon: User },
-]
+type AttendanceMonthly = {
+  present: number
+  late: number
+  absent: number
+  total: number
+  records?: any[]
+}
 
-export default function EmployeeDashboard() {
-  const userInfo = {
-    name: 'Ahmed Ali',
-    role: 'Software Engineer',
+type LeaveBalance = {
+  annual: number
+  sick: number
+}
+
+type PayslipRow = {
+  id: string
+  period: string
+  amount: number
+  status?: string
+  paidDate?: string
+}
+
+type ActivityRow = {
+  id: string
+  type: string
+  action: string
+  createdAt: string
+}
+
+type LeaveFormState = {
+  leaveTypeId: string
+  startDate: string
+  endDate: string
+  reason: string
+}
+
+const employeeUser = {
+  name: 'Ahmed Ali',
+  role: 'Employee',
+}
+
+const defaultLeaveForm: LeaveFormState = {
+  leaveTypeId: '',
+  startDate: '',
+  endDate: '',
+  reason: '',
+}
+
+export default function EmployeeDashboardPage() {
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [checking, setChecking] = useState(false)
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false)
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false)
+  const [leaveTypes, setLeaveTypes] = useState<any[]>([])
+  const [leaveForm, setLeaveForm] = useState<LeaveFormState>(defaultLeaveForm)
+  const [isCheckedIn, setIsCheckedIn] = useState(false)
+
+  const [attendance, setAttendance] = useState<AttendanceMonthly>({
+    present: 0,
+    late: 0,
+    absent: 0,
+    total: 0,
+    records: [],
+  })
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance>({ annual: 0, sick: 0 })
+  const [payslips, setPayslips] = useState<PayslipRow[]>([])
+  const [activity, setActivity] = useState<ActivityRow[]>([])
+
+  const loadDashboard = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true)
+    setRefreshing(!showLoader)
+    setError(null)
+
+    const now = new Date()
+    const month = now.getMonth() + 1
+    const year = now.getFullYear()
+
+    try {
+      const [attendanceRes, leaveRes, leaveTypesRes, payslipsRes, activityRes] = await Promise.all([
+        apiClient.getAttendanceMonthly(month, year),
+        apiClient.getLeaveBalance(year),
+        apiClient.getLeaveTypes(),
+        apiClient.getPayslipsSummary(),
+        apiClient.getActivityFeed({ limit: 8 }),
+      ])
+
+      const monthly = attendanceRes?.data ?? {}
+      setAttendance({
+        present: Number(monthly.present ?? 0),
+        late: Number(monthly.late ?? 0),
+        absent: Number(monthly.absent ?? 0),
+        total: Number(monthly.total ?? 0),
+        records: Array.isArray(monthly.records) ? monthly.records : [],
+      })
+
+      const today = now.toISOString().slice(0, 10)
+      const todayRecord = (Array.isArray(monthly.records) ? monthly.records : []).find(
+        (record: any) => String(record.check_in_time || '').slice(0, 10) === today
+      )
+      setIsCheckedIn(Boolean(todayRecord && !todayRecord.check_out_time))
+
+      const leaveData = leaveRes?.data ?? {}
+      setLeaveBalance({
+        annual: Number(leaveData.annual ?? 0),
+        sick: Number(leaveData.sick ?? 0),
+      })
+
+      const nextLeaveTypes = leaveTypesRes?.data?.leaveTypes ?? []
+      setLeaveTypes(Array.isArray(nextLeaveTypes) ? nextLeaveTypes : [])
+      setLeaveForm((prev) => ({
+        ...prev,
+        leaveTypeId: prev.leaveTypeId || nextLeaveTypes?.[0]?.id || '',
+      }))
+
+      setPayslips(Array.isArray(payslipsRes?.data) ? payslipsRes.data : [])
+      setActivity(Array.isArray(activityRes?.data) ? activityRes.data : [])
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to load employee dashboard.')
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadDashboard(true)
+  }, [loadDashboard])
+
+  const handleCheckInOut = async () => {
+    setChecking(true)
+    setError(null)
+    try {
+      if (isCheckedIn) {
+        await apiClient.clockOut()
+      } else {
+        await apiClient.clockIn({
+          locationId: 'main-office-id',
+          deviceInfo: { os: 'Web', model: navigator.userAgent },
+          wifiSSID: 'web-client',
+        })
+      }
+      await loadDashboard(false)
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Attendance action failed.')
+    } finally {
+      setChecking(false)
+    }
   }
 
-  // Mock data
-  const attendanceStats = {
-    present: 20,
-    late: 2,
-    absent: 1,
-    total: 23,
+  const handleSubmitLeave = async () => {
+    setLeaveSubmitting(true)
+    setError(null)
+    try {
+      await apiClient.createLeaveRequest({
+        leaveTypeId: leaveForm.leaveTypeId,
+        startDate: leaveForm.startDate,
+        endDate: leaveForm.endDate,
+        reason: leaveForm.reason,
+      })
+      setLeaveDialogOpen(false)
+      setLeaveForm((prev) => ({ ...defaultLeaveForm, leaveTypeId: prev.leaveTypeId }))
+      await loadDashboard(false)
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Leave request failed.')
+    } finally {
+      setLeaveSubmitting(false)
+    }
   }
 
-  const leaveBalance = {
-    annual: 15,
-    sick: 5,
-    emergency: 2,
-  }
+  const payslipColumns = useMemo<ColumnDef<PayslipRow, unknown>[]>(
+    () => [
+      { accessorKey: 'period', header: 'Period' },
+      {
+        accessorKey: 'amount',
+        header: 'Amount',
+        cell: ({ row }) => <span className="font-medium">{formatCurrency(Number(row.original.amount || 0))}</span>,
+      },
+      {
+        accessorKey: 'paidDate',
+        header: 'Paid Date',
+        cell: ({ row }) => (
+          <span>{row.original.paidDate ? formatDate(row.original.paidDate) : '-'}</span>
+        ),
+      },
+    ],
+    []
+  )
 
-  const recentPayslip = {
-    month: 'January 2026',
-    netSalary: 14700,
-    status: 'EXECUTED',
-  }
-
-  const pendingActions = [
-    {
-      id: 1,
-      type: 'document',
-      title: 'Employment Contract',
-      description: 'Pending your signature',
-      icon: FileText,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      id: 2,
-      type: 'attendance',
-      title: 'Missing Check-out',
-      description: 'Yesterday - Request correction',
-      icon: Clock,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-    },
-  ]
+  const activityColumns = useMemo<ColumnDef<ActivityRow, unknown>[]>(
+    () => [
+      { accessorKey: 'type', header: 'Type' },
+      { accessorKey: 'action', header: 'Action' },
+      {
+        accessorKey: 'createdAt',
+        header: 'Date',
+        cell: ({ row }) => <span>{formatDate(row.original.createdAt)}</span>,
+      },
+    ],
+    []
+  )
 
   return (
-    <DashboardLayout navigation={navigation} userInfo={userInfo}>
+    <DashboardLayout navigation={employeeNavigation} userInfo={employeeUser}>
       <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {userInfo.name}! 👋
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Here's what's happening with your work today
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button className="h-auto py-6 flex flex-col items-center space-y-2 hover-lift">
-            <MapPin className="h-8 w-8" />
-            <div className="text-center">
-              <div className="font-semibold">Check In</div>
-              <div className="text-xs opacity-80">Mark your attendance</div>
-            </div>
-          </Button>
-          
-          <Button variant="outline" className="h-auto py-6 flex flex-col items-center space-y-2 hover-lift">
-            <Calendar className="h-8 w-8" />
-            <div className="text-center">
-              <div className="font-semibold">Request Leave</div>
-              <div className="text-xs opacity-80">Submit leave application</div>
-            </div>
-          </Button>
-          
-          <Button variant="outline" className="h-auto py-6 flex flex-col items-center space-y-2 hover-lift">
-            <FileText className="h-8 w-8" />
-            <div className="text-center">
-              <div className="font-semibold">View Payslip</div>
-              <div className="text-xs opacity-80">Download latest payslip</div>
-            </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Employee Dashboard</h1>
+            <p className="mt-1 text-gray-600">Live attendance, leave, payslip, and activity data.</p>
+          </div>
+          <Button variant="outline" onClick={() => loadDashboard(false)} disabled={refreshing || loading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Attendance This Month */}
-          <Card className="hover-lift">
-            <CardHeader className="pb-3">
-              <CardDescription>Attendance This Month</CardDescription>
-              <CardTitle className="text-3xl">{attendanceStats.present}/{attendanceStats.total}</CardTitle>
+        {error && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="py-3 text-sm text-red-700">{error}</CardContent>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Button className="h-auto py-5" loading={checking} onClick={handleCheckInOut}>
+            {isCheckedIn ? <LogOut className="mr-2 h-5 w-5" /> : <LogIn className="mr-2 h-5 w-5" />}
+            {isCheckedIn ? 'Check Out' : 'Check In'}
+          </Button>
+          <Button variant="outline" className="h-auto py-5" onClick={() => setLeaveDialogOpen(true)}>
+            <Calendar className="mr-2 h-5 w-5" />
+            Request Leave
+          </Button>
+          <Button
+            variant="outline"
+            className="h-auto py-5"
+            disabled={!payslips.length}
+            onClick={() => window.location.assign('/employee/payslips')}
+          >
+            <Download className="mr-2 h-5 w-5" />
+            View Payslip
+          </Button>
+        </div>
+
+        <EmployeeStats attendance={attendance} leaveBalance={leaveBalance} />
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><FileText className="h-4 w-4" />Payslips</CardTitle>
+              <CardDescription>Fetched from `GET /api/payslips`</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center text-green-600">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Present
-                  </span>
-                  <span className="font-medium">{attendanceStats.present}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center text-yellow-600">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    Late
-                  </span>
-                  <span className="font-medium">{attendanceStats.late}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center text-red-600">
-                    <XCircle className="h-4 w-4 mr-1" />
-                    Absent
-                  </span>
-                  <span className="font-medium">{attendanceStats.absent}</span>
-                </div>
-              </div>
+              <DocumentTable data={payslips} columns={payslipColumns} isLoading={loading} emptyMessage="No payslips yet." />
             </CardContent>
           </Card>
 
-          {/* Leave Balance */}
-          <Card className="hover-lift">
-            <CardHeader className="pb-3">
-              <CardDescription>Leave Balance</CardDescription>
-              <CardTitle className="text-3xl">{leaveBalance.annual} days</CardTitle>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Clock className="h-4 w-4" />Recent Activity</CardTitle>
+              <CardDescription>Fetched from `GET /api/activity/feed`</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Annual Leave</span>
-                  <span className="font-medium">{leaveBalance.annual} days</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Sick Leave</span>
-                  <span className="font-medium">{leaveBalance.sick} days</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Emergency</span>
-                  <span className="font-medium">{leaveBalance.emergency} days</span>
-                </div>
-              </div>
+              <DocumentTable data={activity} columns={activityColumns} isLoading={loading} emptyMessage="No recent activity." />
             </CardContent>
           </Card>
+        </div>
 
-          {/* Latest Payslip */}
-          <Card className="hover-lift">
-            <CardHeader className="pb-3">
-              <CardDescription>Latest Payslip</CardDescription>
-              <CardTitle className="text-2xl">SAR {recentPayslip.netSalary.toLocaleString()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Period</span>
-                  <span className="font-medium">{recentPayslip.month}</span>
+        <Dialog.Root open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40" />
+            <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-2xl">
+              <div className="mb-4 flex items-start justify-between">
+                <div>
+                  <Dialog.Title className="text-lg font-semibold">Request Leave</Dialog.Title>
+                  <Dialog.Description className="text-sm text-gray-600">
+                    Submit via `POST /api/leave/requests`.
+                  </Dialog.Description>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Status</span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Paid
-                  </span>
+                <Dialog.Close asChild>
+                  <button className="rounded p-1 hover:bg-gray-100" aria-label="Close dialog">
+                    <X className="h-4 w-4" />
+                  </button>
+                </Dialog.Close>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Leave Type</label>
+                  <select
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    value={leaveForm.leaveTypeId}
+                    onChange={(event) => setLeaveForm((prev) => ({ ...prev, leaveTypeId: event.target.value }))}
+                  >
+                    {leaveTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <Button variant="outline" size="sm" className="w-full mt-2">
-                  Download PDF
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Start Date</label>
+                    <Input
+                      type="date"
+                      value={leaveForm.startDate}
+                      onChange={(event) => setLeaveForm((prev) => ({ ...prev, startDate: event.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">End Date</label>
+                    <Input
+                      type="date"
+                      value={leaveForm.endDate}
+                      onChange={(event) => setLeaveForm((prev) => ({ ...prev, endDate: event.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Reason</label>
+                  <textarea
+                    className="min-h-[96px] w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    value={leaveForm.reason}
+                    onChange={(event) => setLeaveForm((prev) => ({ ...prev, reason: event.target.value }))}
+                    placeholder="Enter leave reason"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between">
+                <Button variant="outline" onClick={() => setLeaveDialogOpen(false)}>Cancel</Button>
+                <Button
+                  loading={leaveSubmitting}
+                  onClick={handleSubmitLeave}
+                  disabled={
+                    !leaveForm.leaveTypeId ||
+                    !leaveForm.startDate ||
+                    !leaveForm.endDate ||
+                    !leaveForm.reason.trim()
+                  }
+                >
+                  Submit
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Pending Actions */}
-          <Card className="hover-lift">
-            <CardHeader className="pb-3">
-              <CardDescription>Pending Actions</CardDescription>
-              <CardTitle className="text-3xl">{pendingActions.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {pendingActions.map((action) => {
-                  const Icon = action.icon
-                  return (
-                    <div
-                      key={action.id}
-                      className="flex items-start space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-                    >
-                      <div className={`p-1.5 rounded ${action.bgColor}`}>
-                        <Icon className={`h-3 w-3 ${action.color}`} />
-                      </div>
-                      <div className="flex-1 min-w-0 text-xs">
-                        <p className="font-medium truncate">{action.title}</p>
-                        <p className="text-gray-500 truncate">{action.description}</p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your recent actions and updates</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                {
-                  action: 'Checked in',
-                  time: 'Today at 8:30 AM',
-                  icon: Clock,
-                  color: 'text-green-600',
-                },
-                {
-                  action: 'Leave request approved',
-                  time: 'Yesterday at 2:15 PM',
-                  icon: Calendar,
-                  color: 'text-blue-600',
-                },
-                {
-                  action: 'Payslip generated',
-                  time: 'Feb 1, 2026',
-                  icon: FileText,
-                  color: 'text-purple-600',
-                },
-              ].map((item, index) => {
-                const Icon = item.icon
-                return (
-                  <div key={index} className="flex items-center space-x-4">
-                    <div className={`p-2 rounded-lg bg-gray-50`}>
-                      <Icon className={`h-5 w-5 ${item.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{item.action}</p>
-                      <p className="text-xs text-gray-500">{item.time}</p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Announcements */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="h-5 w-5 mr-2" />
-              Announcements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-1">
-                  Company Holiday - February 22nd
-                </h4>
-                <p className="text-sm text-blue-700">
-                  Office will be closed for Saudi Founding Day celebration.
-                </p>
-              </div>
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-1">
-                  New Training Program Available
-                </h4>
-                <p className="text-sm text-green-700">
-                  Enroll in the Advanced Leadership Skills course. Limited seats available.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
     </DashboardLayout>
   )

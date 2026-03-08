@@ -18,11 +18,21 @@ router.post(
   authenticate,
   attendanceController.checkIn.bind(attendanceController)
 );
+router.post(
+  '/clock-in',
+  authenticate,
+  attendanceController.clockIn.bind(attendanceController)
+);
 
 router.post(
   '/check-out',
   authenticate,
   attendanceController.checkOut.bind(attendanceController)
+);
+router.post(
+  '/clock-out',
+  authenticate,
+  attendanceController.clockOut.bind(attendanceController)
 );
 
 router.get(
@@ -35,6 +45,11 @@ router.get(
   '/summary',
   authenticate,
   attendanceController.getSummary.bind(attendanceController)
+);
+router.get(
+  '/monthly',
+  authenticate,
+  attendanceController.getMonthly.bind(attendanceController)
 );
 
 router.post(

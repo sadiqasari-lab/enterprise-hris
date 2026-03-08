@@ -35,6 +35,7 @@ export default function EmployeeDocumentsPage() {
   const [pendingSignatures, setPendingSignatures] = useState<PendingSignatureItem[]>([])
   const [loadingDocs, setLoadingDocs] = useState(true)
   const [loadingPending, setLoadingPending] = useState(true)
+  const [apiError, setApiError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<'sign' | 'reject'>('sign')
   const [activeDocument, setActiveDocument] = useState<DocumentItem | null>(null)
@@ -42,13 +43,28 @@ export default function EmployeeDocumentsPage() {
   const refreshData = useCallback(async () => {
     setLoadingDocs(true)
     setLoadingPending(true)
+    setApiError(null)
     try {
       const [docResponse, pendingResponse] = await Promise.all([
         apiClient.getDocuments(),
         apiClient.getPendingSignatures(),
       ])
-      setDocuments(docResponse?.data?.documents ?? [])
-      setPendingSignatures(pendingResponse?.data?.documents ?? [])
+      const docData = docResponse?.data?.documents
+      setDocuments(Array.isArray(docData) ? docData : [])
+
+      // Raw fallback requested shape.
+      const pendingData = pendingResponse?.data ?? []
+      // Supports both payload shapes: { data: { documents: [] } } and { data: [] }.
+      const nextPending = Array.isArray(pendingData)
+        ? pendingData
+        : Array.isArray(pendingData?.documents)
+          ? pendingData.documents
+          : []
+      setPendingSignatures(nextPending)
+    } catch (error: any) {
+      setDocuments([])
+      setPendingSignatures([])
+      setApiError(error?.response?.data?.error?.message || 'Failed to load documents.')
     } finally {
       setLoadingDocs(false)
       setLoadingPending(false)
@@ -69,29 +85,37 @@ export default function EmployeeDocumentsPage() {
       requireSignature: boolean
       allowDownload: boolean
     }) => {
-      const formData = new FormData()
-      formData.append('file', payload.file)
-      formData.append('title', payload.title)
-      formData.append('category', payload.category)
-      formData.append('requireSignature', String(payload.requireSignature))
-      formData.append('allowDownload', String(payload.allowDownload))
-      if (payload.employeeId) formData.append('employeeId', payload.employeeId)
-      if (payload.expiryDate) formData.append('expiryDate', payload.expiryDate)
+      try {
+        const formData = new FormData()
+        formData.append('file', payload.file)
+        formData.append('title', payload.title)
+        formData.append('category', payload.category)
+        formData.append('requireSignature', String(payload.requireSignature))
+        formData.append('allowDownload', String(payload.allowDownload))
+        if (payload.employeeId) formData.append('employeeId', payload.employeeId)
+        if (payload.expiryDate) formData.append('expiryDate', payload.expiryDate)
 
-      await apiClient.uploadDocument(formData)
-      await refreshData()
+        await apiClient.uploadDocument(formData)
+        await refreshData()
+      } catch (error: any) {
+        setApiError(error?.response?.data?.error?.message || 'Failed to upload document.')
+      }
     },
     [refreshData]
   )
 
   const handleDownload = useCallback(async (documentId: string) => {
-    const blob = await apiClient.downloadDocument(documentId)
-    const url = window.URL.createObjectURL(blob)
-    const link = window.document.createElement('a')
-    link.href = url
-    link.download = 'document'
-    link.click()
-    window.URL.revokeObjectURL(url)
+    try {
+      const blob = await apiClient.downloadDocument(documentId)
+      const url = window.URL.createObjectURL(blob)
+      const link = window.document.createElement('a')
+      link.href = url
+      link.download = 'document'
+      link.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error: any) {
+      setApiError(error?.response?.data?.error?.message || 'Failed to download document.')
+    }
   }, [])
 
   const openSignatureDialog = useCallback((document: DocumentItem, mode: 'sign' | 'reject') => {
@@ -102,14 +126,18 @@ export default function EmployeeDocumentsPage() {
 
   const onDialogConfirm = useCallback(
     async (payload: { signatureData?: string; rejectionReason?: string }) => {
-      if (!activeDocument) return
-      if (dialogMode === 'sign' && payload.signatureData) {
-        await apiClient.signDocument(activeDocument.id, payload.signatureData)
+      try {
+        if (!activeDocument) return
+        if (dialogMode === 'sign' && payload.signatureData) {
+          await apiClient.signDocument(activeDocument.id, payload.signatureData)
+        }
+        if (dialogMode === 'reject' && payload.rejectionReason) {
+          await apiClient.rejectDocument(activeDocument.id, payload.rejectionReason)
+        }
+        await refreshData()
+      } catch (error: any) {
+        setApiError(error?.response?.data?.error?.message || 'Failed to update signature workflow.')
       }
-      if (dialogMode === 'reject' && payload.rejectionReason) {
-        await apiClient.rejectDocument(activeDocument.id, payload.rejectionReason)
-      }
-      await refreshData()
     },
     [activeDocument, dialogMode, refreshData]
   )
@@ -207,7 +235,7 @@ export default function EmployeeDocumentsPage() {
 
   const pendingRows = useMemo(
     () =>
-      pendingSignatures.map((item) => ({
+      (pendingSignatures ?? []).map((item) => ({
         ...item,
         id: `${item.document.id}-${item.stepOrder}`,
       })),
@@ -221,6 +249,17 @@ export default function EmployeeDocumentsPage() {
           <h1 className="text-3xl font-bold text-gray-900">My Documents</h1>
           <p className="mt-1 text-gray-600">Upload, review, and sign your HR documents.</p>
         </div>
+
+        {apiError && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="flex items-center justify-between gap-4 py-4">
+              <p className="text-sm text-red-700">{apiError}</p>
+              <Button variant="outline" size="sm" onClick={refreshData}>
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">

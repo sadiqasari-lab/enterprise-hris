@@ -56,6 +56,29 @@ export class LeaveController {
     } catch (e) { next(e); }
   }
 
+  async getMyBalanceSummary(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { PrismaClient } = await import('@hris/database');
+      const prisma = new PrismaClient();
+      const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { employee_id: true } });
+      if (!user?.employee_id) throw new ApiError(404, 'Employee record not found');
+
+      const year = req.query.year ? parseInt(req.query.year as string, 10) : new Date().getFullYear();
+      const balances = await leaveService.getEmployeeBalances(user.employee_id, year);
+
+      const summary = balances.reduce(
+        (acc: Record<string, number>, balance: any) => {
+          const code = String(balance.leave_type?.code || '').toLowerCase();
+          if (code) acc[code] = Number(balance.remaining_days ?? 0);
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      res.json({ success: true, data: summary });
+    } catch (e) { next(e); }
+  }
+
   async initializeBalances(req: Request, res: Response, next: NextFunction) {
     try {
       const { employeeId } = req.params;

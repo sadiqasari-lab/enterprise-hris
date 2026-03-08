@@ -50,7 +50,7 @@ describe('LoginPage integration journey', () => {
 
   it('shows backend error on failed login', async () => {
     apiClientMock.login.mockRejectedValue({
-      response: { data: { message: 'Invalid credentials' } },
+      response: { data: { error: { message: 'Invalid credentials' } } },
     })
 
     render(<LoginPage />)

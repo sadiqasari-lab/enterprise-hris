@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { ColumnDef } from '@tanstack/react-table'
 import {
   CalendarClock,
@@ -18,9 +19,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { DocumentTable } from '@/components/documents/document-table'
 import { DocumentItem, DocumentFilters } from '@/components/documents/types'
 import { formatDate } from '@/lib/utils'
+
+const DocumentTable = dynamic(
+  () => import('@/components/documents/document-table').then((mod) => mod.DocumentTable),
+  { ssr: false }
+) as typeof import('@/components/documents/document-table').DocumentTable
 
 const adminUser = {
   name: 'Sarah Ahmed',

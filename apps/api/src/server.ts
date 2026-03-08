@@ -33,6 +33,8 @@ import mobileAttendanceRoutes from './modules/mobile-attendance/mobile-attendanc
 import mobileProfileRoutes from './modules/mobile-profile/mobile-profile.routes';
 import mobileLeaveRoutes from './modules/mobile-leave/mobile-leave.routes';
 import mobilePayslipRoutes from './modules/mobile-payslip/mobile-payslip.routes';
+import activityRoutes from './modules/activity/activity.routes';
+import payslipRoutes from './modules/payslips/payslip.routes';
 
 const app: Application = express();
 
@@ -136,6 +138,8 @@ app.use('/api/mobile/attendance', mobileAttendanceRoutes);
 app.use('/api/mobile/profile', mobileProfileRoutes);
 app.use('/api/mobile/leave', mobileLeaveRoutes);
 app.use('/api/mobile/payslips', mobilePayslipRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/payslips', payslipRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

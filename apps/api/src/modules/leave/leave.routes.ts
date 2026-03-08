@@ -21,6 +21,7 @@ router.post('/balances/:employeeId/init', authenticate, requireHRAdmin, leaveCon
 
 // ── Balance reads ──────────────────────────────────────
 router.get('/balances/my', authenticate, leaveController.getMyBalances.bind(leaveController));
+router.get('/balance', authenticate, leaveController.getMyBalanceSummary.bind(leaveController));
 router.get('/balances/:employeeId', authenticate, requireAnyRole(['HR_ADMIN','HR_OFFICER','MANAGER','GM','SUPER_ADMIN']), leaveController.getBalances.bind(leaveController));
 
 // ── Employee self-service ──────────────────────────────

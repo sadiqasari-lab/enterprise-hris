@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table'
 
 type DocumentTableProps<TData extends { id: string }> = {
-  data: TData[]
+  data?: TData[] | null
   columns: ColumnDef<TData, unknown>[]
   selectable?: boolean
   emptyMessage?: string
@@ -36,8 +36,14 @@ export function DocumentTable<TData extends { id: string }>({
   isLoading = false,
   onSelectionChange,
 }: DocumentTableProps<TData>) {
+  const [mounted, setMounted] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data])
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const selectionColumn = useMemo<ColumnDef<TData, unknown>>(
     () => ({
@@ -73,7 +79,7 @@ export function DocumentTable<TData extends { id: string }>({
   )
 
   const table = useReactTable({
-    data,
+    data: safeData,
     columns: finalColumns,
     state: { sorting, rowSelection },
     onSortingChange: setSorting,
@@ -84,49 +90,55 @@ export function DocumentTable<TData extends { id: string }>({
   })
 
   useEffect(() => {
+    if (!mounted || typeof window === 'undefined') return
     if (!onSelectionChange) return
     onSelectionChange(table.getSelectedRowModel().rows.map((row) => row.original))
-  }, [onSelectionChange, rowSelection, table])
+  }, [mounted, onSelectionChange, rowSelection, table])
 
   if (isLoading) {
-    return <div className="py-10 text-center text-sm text-gray-500">Loading documents...</div>
+    return (
+      <div suppressHydrationWarning className="py-10 text-center text-sm text-gray-500">
+        Loading documents...
+      </div>
+    )
   }
 
   return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.length ? (
-          table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} data-state={row.getIsSelected() ? 'selected' : undefined}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
+    <div suppressHydrationWarning>
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
               ))}
             </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={finalColumns.length} className="h-24 text-center text-sm text-gray-500">
-              {emptyMessage}
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} data-state={row.getIsSelected() ? 'selected' : undefined}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={finalColumns.length} className="h-24 text-center text-sm text-gray-500">
+                {emptyMessage}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
-

@@ -42,7 +42,7 @@ export default function LoginPage() {
       const redirectRoute = roleRoutes[userRole] || '/employee'
       router.push(redirectRoute)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.')
+      setError(err.response?.data?.error?.message || 'Login failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -127,17 +127,17 @@ export default function LoginPage() {
               <div className="space-y-1 text-xs text-gray-600">
                 <div className="flex justify-between">
                   <span>HR Admin:</span>
-                  <code className="bg-white px-2 py-0.5 rounded">hr.admin@company.com</code>
+                  <code className="bg-white px-2 py-0.5 rounded">hr.admin@alnoor.com</code>
                 </div>
                 <div className="flex justify-between">
                   <span>GM:</span>
-                  <code className="bg-white px-2 py-0.5 rounded">gm@company.com</code>
+                  <code className="bg-white px-2 py-0.5 rounded">gm@alnoor.com</code>
                 </div>
                 <div className="flex justify-between">
                   <span>Employee:</span>
-                  <code className="bg-white px-2 py-0.5 rounded">employee@company.com</code>
+                  <code className="bg-white px-2 py-0.5 rounded">employee@alnoor.com</code>
                 </div>
-                <p className="text-center mt-2">Password: <code className="bg-white px-2 py-0.5 rounded">demo123</code></p>
+                <p className="text-center mt-2">Password: <code className="bg-white px-2 py-0.5 rounded">Hris2026!</code></p>
               </div>
             </div>
           </CardContent>

@@ -125,8 +125,24 @@ class APIClient {
     return response.data
   }
 
+  async clockIn(data: {
+    locationId: string
+    gps?: any
+    selfie?: string
+    wifiSSID?: string
+    deviceInfo?: any
+  }) {
+    const response = await this.client.post('/attendance/clock-in', data)
+    return response.data
+  }
+
   async checkOut() {
     const response = await this.client.post('/attendance/check-out')
+    return response.data
+  }
+
+  async clockOut() {
+    const response = await this.client.post('/attendance/clock-out')
     return response.data
   }
 
@@ -141,6 +157,13 @@ class APIClient {
 
   async getAttendanceSummary(month: number, year: number) {
     const response = await this.client.get('/attendance/summary', {
+      params: { month, year },
+    })
+    return response.data
+  }
+
+  async getAttendanceMonthly(month: number, year: number) {
+    const response = await this.client.get('/attendance/monthly', {
       params: { month, year },
     })
     return response.data
@@ -250,6 +273,11 @@ class APIClient {
   // Payroll API
   async getPayslips() {
     const response = await this.client.get('/payroll/payslips/my')
+    return response.data
+  }
+
+  async getPayslipsSummary() {
+    const response = await this.client.get('/payslips')
     return response.data
   }
 
@@ -415,6 +443,11 @@ class APIClient {
     return response.data
   }
 
+  async getLeaveBalance(year?: number) {
+    const response = await this.client.get('/leave/balance', { params: year ? { year } : undefined })
+    return response.data
+  }
+
   async getLeaveBalances(employeeId: string, year?: number) {
     const response = await this.client.get(`/leave/balances/${employeeId}`, { params: year ? { year } : undefined })
     return response.data
@@ -549,6 +582,10 @@ class APIClient {
   async get<T = any>(url: string, params?: any): Promise<T> {
     const response = await this.client.get(url, { params })
     return response.data
+  }
+
+  async getActivityFeed(params?: { limit?: number }): Promise<any> {
+    return this.get('/activity/feed', params)
   }
 
   async post<T = any>(url: string, data?: any): Promise<T> {

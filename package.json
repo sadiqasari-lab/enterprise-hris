@@ -9,9 +9,15 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
+    "dev:api": "npm run dev --workspace @hris/api",
+    "dev:web": "npm run dev --workspace @hris/web",
+    "dev:all": "npm run infra:up && turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "infra:up": "docker compose -f docker-compose.dev.yml up -d",
+    "infra:down": "docker compose -f docker-compose.dev.yml down",
+    "infra:ps": "docker compose -f docker-compose.dev.yml ps",
     "perf:smoke": "node scripts/perf-smoke.mjs",
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
