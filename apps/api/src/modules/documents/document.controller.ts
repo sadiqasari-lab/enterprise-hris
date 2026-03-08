@@ -3,11 +3,51 @@
  * Handles HTTP requests for document management and digital signatures
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { documentService } from './document.service';
 import { ApiError } from '../../middleware/errorHandler';
 import multer from 'multer';
-import path from 'path';
+import { ApprovalChainConfig, SignDocumentData } from './document.service';
+
+type IdParams = { id: string };
+
+type UploadDocumentBody = {
+  title?: string;
+  titleAr?: string;
+  category?: string;
+  employeeId?: string;
+  expiryDate?: string;
+  requireSignature?: string | boolean;
+  allowDownload?: string | boolean;
+};
+
+type InitiateSignatureBody = {
+  approvalChain?: ApprovalChainConfig;
+};
+
+type SignDocumentBody = {
+  signatureData?: string;
+  geolocation?: SignDocumentData['geolocation'];
+};
+
+type RejectDocumentBody = {
+  rejectionReason?: string;
+};
+
+type GetDocumentsQuery = {
+  employeeId?: string;
+  category?: string;
+  status?: string;
+  expiringWithinDays?: string;
+};
+
+type GetExpiringDocumentsQuery = {
+  days?: string;
+};
+
+type UploadRequest = Request<{}, any, UploadDocumentBody> & {
+  file?: Express.Multer.File;
+};
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
@@ -34,16 +74,44 @@ const upload = multer({
 });
 
 export class DocumentController {
+  private parseBoolean(value: string | boolean | undefined, defaultValue: boolean): boolean {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'true') return true;
+      if (normalized === 'false') return false;
+    }
+    return defaultValue;
+  }
+
   /**
    * File upload middleware
    */
-  uploadMiddleware = upload.single('file');
+  uploadMiddleware: RequestHandler = upload.single('file');
+
+  /**
+   * Controller method skeleton (matches documents.routes.ts)
+   * - uploadMiddleware
+   * - uploadDocument
+   * - getDocuments
+   * - getDocument
+   * - downloadDocument
+   * - initiateSignature
+   * - signDocument
+   * - rejectDocument
+   * - getPendingSignatures
+   * - previewDocument
+   * - getVersionHistory
+   * - getAuditTrail
+   * - getExpiringDocuments
+   * - deleteDocument
+   */
 
   /**
    * POST /api/documents/upload
    * Upload document
    */
-  async uploadDocument(req: Request, res: Response, next: NextFunction) {
+  async uploadDocument(req: UploadRequest, res: Response, next: NextFunction) {
     try {
       if (!req.file) {
         throw new ApiError(400, 'No file uploaded');
@@ -76,8 +144,8 @@ export class DocumentController {
         fileName: req.file.originalname,
         fileType: req.file.mimetype,
         expiryDate: expiryDate ? new Date(expiryDate) : undefined,
-        requireSignature: requireSignature === 'true' || requireSignature === true,
-        allowDownload: allowDownload === 'true' || allowDownload === true || true,
+        requireSignature: this.parseBoolean(requireSignature, false),
+        allowDownload: this.parseBoolean(allowDownload, true),
         createdBy,
       });
 
@@ -95,7 +163,11 @@ export class DocumentController {
    * POST /api/documents/:id/initiate-signature
    * Initiate signature workflow
    */
-  async initiateSignature(req: Request, res: Response, next: NextFunction) {
+  async initiateSignature(
+    req: Request<IdParams, any, InitiateSignatureBody>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
       const { approvalChain } = req.body;
@@ -125,7 +197,11 @@ export class DocumentController {
    * POST /api/documents/:id/sign
    * Sign document
    */
-  async signDocument(req: Request, res: Response, next: NextFunction) {
+  async signDocument(
+    req: Request<IdParams, any, SignDocumentBody>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
       const { signatureData, geolocation } = req.body;
@@ -160,7 +236,11 @@ export class DocumentController {
    * POST /api/documents/:id/reject
    * Reject document
    */
-  async rejectDocument(req: Request, res: Response, next: NextFunction) {
+  async rejectDocument(
+    req: Request<IdParams, any, RejectDocumentBody>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
       const { rejectionReason } = req.body;
@@ -190,7 +270,11 @@ export class DocumentController {
    * GET /api/documents
    * Get documents with filters
    */
-  async getDocuments(req: Request, res: Response, next: NextFunction) {
+  async getDocuments(
+    req: Request<{}, any, any, GetDocumentsQuery>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const companyId = req.companyId!;
       const { employeeId, category, status, expiringWithinDays } = req.query;
@@ -217,7 +301,11 @@ export class DocumentController {
    * GET /api/documents/:id
    * Get document by ID
    */
-  async getDocument(req: Request, res: Response, next: NextFunction) {
+  async getDocument(
+    req: Request<IdParams>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
       const userId = req.userId!;
@@ -237,7 +325,11 @@ export class DocumentController {
    * GET /api/documents/:id/download
    * Download document
    */
-  async downloadDocument(req: Request, res: Response, next: NextFunction) {
+  async downloadDocument(
+    req: Request<IdParams>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
       const userId = req.userId!;
@@ -247,6 +339,7 @@ export class DocumentController {
         userId
       );
 
+      res.setHeader('Content-Type', fileType);
       res.download(filePath, fileName);
     } catch (error) {
       next(error);
@@ -257,7 +350,11 @@ export class DocumentController {
    * GET /api/documents/:id/preview
    * Preview document (secure viewer)
    */
-  async previewDocument(req: Request, res: Response, next: NextFunction) {
+  async previewDocument(
+    req: Request<IdParams>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
       const userId = req.userId!;
@@ -271,7 +368,7 @@ export class DocumentController {
           document,
           // Add watermark info
           watermark: {
-            text: `${req.user!.userId} - ${new Date().toISOString()}`,
+            text: `${req.userId} - ${new Date().toISOString()}`,
           },
         },
       });
@@ -284,7 +381,11 @@ export class DocumentController {
    * GET /api/documents/:id/versions
    * Get document version history
    */
-  async getVersionHistory(req: Request, res: Response, next: NextFunction) {
+  async getVersionHistory(
+    req: Request<IdParams>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
 
@@ -303,7 +404,11 @@ export class DocumentController {
    * GET /api/documents/:id/audit-trail
    * Get document audit trail
    */
-  async getAuditTrail(req: Request, res: Response, next: NextFunction) {
+  async getAuditTrail(
+    req: Request<IdParams>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
 
@@ -322,7 +427,11 @@ export class DocumentController {
    * GET /api/documents/expiring
    * Get expiring documents
    */
-  async getExpiringDocuments(req: Request, res: Response, next: NextFunction) {
+  async getExpiringDocuments(
+    req: Request<{}, any, any, GetExpiringDocumentsQuery>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const companyId = req.companyId!;
       const { days } = req.query;
@@ -364,7 +473,11 @@ export class DocumentController {
    * DELETE /api/documents/:id
    * Delete document (soft delete)
    */
-  async deleteDocument(req: Request, res: Response, next: NextFunction) {
+  async deleteDocument(
+    req: Request<IdParams>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
 
