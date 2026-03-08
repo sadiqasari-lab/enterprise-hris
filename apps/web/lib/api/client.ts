@@ -331,6 +331,13 @@ class APIClient {
     return response.data
   }
 
+  async rejectDocument(documentId: string, rejectionReason: string) {
+    const response = await this.client.post(`/documents/${documentId}/reject`, {
+      rejectionReason,
+    })
+    return response.data
+  }
+
   async getPendingSignatures() {
     const response = await this.client.get('/documents/pending-signatures/my')
     return response.data
@@ -340,6 +347,18 @@ class APIClient {
     const response = await this.client.get(`/documents/${documentId}/download`, {
       responseType: 'blob',
     })
+    return response.data
+  }
+
+  async getExpiringDocuments(days = 30) {
+    const response = await this.client.get('/documents/expiring/list', {
+      params: { days },
+    })
+    return response.data
+  }
+
+  async deleteDocument(documentId: string) {
+    const response = await this.client.delete(`/documents/${documentId}`)
     return response.data
   }
 
